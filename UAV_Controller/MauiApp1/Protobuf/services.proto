@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package UAV_MAUI_DJI_Client;
+
+service UAVService {
+  rpc GetTrajectory(TrajectoryRequest) returns (TrajectoryResponse);
+  rpc DetectDefects(DefectDetectionRequest) returns (DefectDetectionResponse);
+  rpc AssessCriticality(CriticalityAssessmentRequest) returns (CriticalityAssessmentResponse);
+  rpc GenerateReport(ReportRequest) returns (ReportResponse);
+}
+
+message TrajectoryRequest {
+  TurbineGeometry turbine_geometry = 1;
+  double wind_speed = 2;
+  double wind_direction = 3;
+}
+
+message TurbineGeometry {
+  repeated Point waypoints = 1;
+}
+
+message Point {
+  double latitude = 1;
+  double longitude = 2;
+  double altitude = 3;
+}
+
+message TrajectoryResponse {
+  repeated Point waypoints = 1;
+}
+
+message DefectDetectionRequest {
+  Image image = 1;
+}
+
+message DefectDetectionResponse {
+  repeated Defect defects = 1;
+}
+
+message Image {
+  bytes data = 1;
+}
+
+message Defect {
+  string type = 1;
+  double confidence = 2;
+}
+
+message CriticalityAssessmentRequest {
+  repeated DefectInfo defects = 1;
+}
+
+message DefectInfo {
+  string type = 1;
+  double confidence = 2;
+}
+
+message CriticalityAssessmentResponse {
+  repeated Criticality criticalities = 1;
+}
+
+message Criticality {
+  string defect_type = 1;
+  string recommendation = 2;
+}
+
+message ReportRequest {
+  string turbine_id = 1;
+  TrajectoryResponse trajectory = 2;
+  DefectDetectionResponse defects = 3;
+  CriticalityAssessmentResponse criticalities = 4;
+}
+
+message ReportResponse {
+  string report_url = 1;
+}

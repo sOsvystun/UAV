@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package trajectory;
+
+import "common.proto";
+
+service TrajectoryPlanner {
+  rpc GetInspectionTrajectory(TrajectoryRequest) returns (TrajectoryResponse);
+}
+
+message TrajectoryRequest {
+  common.TurbineGeometry turbine_geometry = 1;
+  double wind_speed = 2;
+  double wind_direction = 3;
+}
+
+message TrajectoryResponse {
+  repeated common.Point3D waypoints = 1;
+  double estimated_time_minutes = 2;
+  double battery_usage_percent = 3;
+}

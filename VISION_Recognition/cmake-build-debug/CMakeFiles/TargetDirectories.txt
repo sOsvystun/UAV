@@ -1,0 +1,3 @@
+/Users/oleksandrmelnychenko/CLionProjects/untitled7/cmake-build-debug/CMakeFiles/untitled7.dir
+/Users/oleksandrmelnychenko/CLionProjects/untitled7/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/oleksandrmelnychenko/CLionProjects/untitled7/cmake-build-debug/CMakeFiles/rebuild_cache.dir

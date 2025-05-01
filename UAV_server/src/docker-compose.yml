@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  ecliptix:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5051:5051"

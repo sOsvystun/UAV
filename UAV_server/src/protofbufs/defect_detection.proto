@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package defect_detection;
+
+import "common.proto";
+
+service DefectDetectionService {
+  rpc DetectDefects(DefectDetectionRequest) returns (DefectDetectionResponse);
+}
+
+message DefectDetectionRequest {
+  common.Image image = 1;
+}
+
+message Defect {
+  string type = 1;
+  double confidence = 2;
+  common.Point3D location = 3;
+}
+
+message DefectDetectionResponse {
+  repeated Defect defects = 1;
+}

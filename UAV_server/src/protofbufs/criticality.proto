@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package criticality;
+
+service CriticalityAssessmentService {
+  rpc AssessCriticality(CriticalityAssessmentRequest) returns (CriticalityAssessmentResponse);
+}
+
+message DefectInfo {
+  string type = 1;
+  double confidence = 2;
+  double severity = 3;
+}
+
+message CriticalityAssessmentRequest {
+  repeated DefectInfo defects = 1;
+}
+
+message CriticalityAssessmentResponse {
+  repeated CriticalityRating ratings = 1;
+}
+
+message CriticalityRating {
+  string defect_type = 1;
+  double criticality_score = 2;
+  string recommended_action = 3;
+}

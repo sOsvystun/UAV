@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package reporting;
+
+import "common.proto";
+import "criticality.proto";
+import "defect_detection.proto";
+import "trajectory.proto";
+
+service ReportingService {
+  rpc GenerateReport(ReportRequest) returns (ReportResponse);
+}
+
+message ReportRequest {
+  string turbine_id = 1;
+  trajectory.TrajectoryResponse trajectory = 2;
+  defect_detection.DefectDetectionResponse defects = 3;
+  criticality.CriticalityAssessmentResponse criticalities = 4;
+}
+
+message ReportResponse {
+  string report_id = 1;
+  string report_url = 2;
+  string summary = 3;
+  repeated common.Image images = 4;
+}

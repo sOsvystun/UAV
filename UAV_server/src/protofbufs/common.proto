@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package common;
+
+message Point3D {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+message Image {
+  bytes data = 1;
+  string format = 2;
+}
+
+message TurbineGeometry {
+  repeated Point3D points = 1;
+}

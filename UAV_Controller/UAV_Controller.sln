@@ -1,0 +1,24 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UAV_Controller", "UAV_Controller\UAV_Controller.csproj", "{35D0AA41-05C9-4C19-BC71-BB4EC40D8DD3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiApp1", "MauiApp1\MauiApp1.csproj", "{A62BE00F-8BB6-4B02-842C-F94153A78349}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{35D0AA41-05C9-4C19-BC71-BB4EC40D8DD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35D0AA41-05C9-4C19-BC71-BB4EC40D8DD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35D0AA41-05C9-4C19-BC71-BB4EC40D8DD3}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{35D0AA41-05C9-4C19-BC71-BB4EC40D8DD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35D0AA41-05C9-4C19-BC71-BB4EC40D8DD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35D0AA41-05C9-4C19-BC71-BB4EC40D8DD3}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{A62BE00F-8BB6-4B02-842C-F94153A78349}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A62BE00F-8BB6-4B02-842C-F94153A78349}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A62BE00F-8BB6-4B02-842C-F94153A78349}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A62BE00F-8BB6-4B02-842C-F94153A78349}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
