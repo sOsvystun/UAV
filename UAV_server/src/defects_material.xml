@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DefectAssessmentData>
+    <Defect type="crack">
+        <Description language="lt">Paviršiaus įtrūkimai</Description>
+        <MembershipFunction type="Gaussian">
+            <Mean>4.8</Mean>
+            <Sigma>0.5</Sigma>
+        </MembershipFunction>
+        <ExpertWeight>1.5</ExpertWeight>
+        <CriticalityThreshold>0.85</CriticalityThreshold>
+        <Recommendation language="lt">Skubiai pašalinti per 2 dienas</Recommendation>
+    </Defect>
+    <Defect type="corrosion">
+        <Description language="lt">Korozijos pažeidimai</Description>
+        <MembershipFunction type="Trapezoidal">
+            <Parameters>
+                <Parameter>4.5</Parameter>
+                <Parameter>4.7</Parameter>
+                <Parameter>5.0</Parameter>
+                <Parameter>5.0</Parameter>
+            </Parameters>
+        </MembershipFunction>
+        <ExpertWeight>1.2</ExpertWeight>
+        <CriticalityThreshold>0.75</CriticalityThreshold>
+        <Recommendation language="lt">Nuodugniai patikrinti per 7 dienas</Recommendation>
+    </Defect>
+    <Defect type="overheating">
+        <Description language="lt">Perkaitimo požymiai</Description>
+        <MembershipFunction type="Triangular">
+            <Parameters>
+                <Parameter>4.6</Parameter>
+                <Parameter>4.9</Parameter>
+                <Parameter>5.0</Parameter>
+            </Parameters>
+        </MembershipFunction>
+        <ExpertWeight>1.4</ExpertWeight>
+        <CriticalityThreshold>0.80</CriticalityThreshold>
+        <Recommendation language="lt">Patikrinti aušinimo sistemas per 3 dienas</Recommendation>
+    </Defect>
+    <Defect type="erosion">
+        <Description language="lt">Eroziniai paviršiaus pažeidimai</Description>
+        <MembershipFunction type="Gaussian">
+            <Mean>4.5</Mean>
+            <Sigma>0.4</Sigma>
+        </MembershipFunction>
+        <ExpertWeight>1.3</ExpertWeight>
+        <CriticalityThreshold>0.70</CriticalityThreshold>
+        <Recommendation language="lt">Stebėti ir patikrinti per 14 dienų</Recommendation>
+    </Defect>
+    <Defect type="mechanical_damage">
+        <Description language="lt">Mechaniniai pažeidimai</Description>
+        <MembershipFunction type="Triangular">
+            <Parameters>
+                <Parameter>4.4</Parameter>
+                <Parameter>4.8</Parameter>
+                <Parameter>5.0</Parameter>
+            </Parameters>
+        </MembershipFunction>
+        <ExpertWeight>1.6</ExpertWeight>
+        <CriticalityThreshold>0.90</CriticalityThreshold>
+        <Recommendation language="lt">Skubus remontas per 24 valandas</Recommendation>
+    </Defect>
+    <Defect type="delamination">
+        <Description language="lt">Sluoksnių atsiskyrimas</Description>
+        <MembershipFunction type="Gaussian">
+            <Mean>4.9</Mean>
+            <Sigma>0.3</Sigma>
+        </MembershipFunction>
+        <ExpertWeight>1.7</ExpertWeight>
+        <CriticalityThreshold>0.88</CriticalityThreshold>
+        <Recommendation language="lt">Neatidėliotina patikra ir remontas per 48 valandas</Recommendation>
+    </Defect>
+    <Defect type="fatigue_wear">
+        <Description language="lt">Nuovargio susidėvėjimas</Description>
+        <MembershipFunction type="Trapezoidal">
+            <Parameters>
+                <Parameter>4.2</Parameter>
+                <Parameter>4.6</Parameter>
+                <Parameter>4.9</Parameter>
+                <Parameter>5.0</Parameter>
+            </Parameters>
+        </MembershipFunction>
+        <ExpertWeight>1.1</ExpertWeight>
+        <CriticalityThreshold>0.77</CriticalityThreshold>
+        <Recommendation language="lt">Planuotas patikrinimas per 10 dienų</Recommendation>
+    </Defect>
+</DefectAssessmentData>
