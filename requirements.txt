@@ -1,0 +1,57 @@
+# This file lists the Python dependencies required for the project.
+# It also includes instructions for setting up the environment for other project components.
+
+# Python Dependencies (for VISION_Fuzzy and potentially VISION_Recognition's Python components)
+# Install these using pip:
+# pip install -r requirements.txt
+
+numpy
+scikit-fuzzy
+matplotlib # Optional, for visualization in VISION_Fuzzy
+
+# --- Additional Setup Instructions for Other Project Components ---
+
+# VISION_Recognition (C++ Component)
+# This component requires OpenCV and a C++20 compatible compiler.
+#
+# On Ubuntu/Debian:
+# sudo apt update
+# sudo apt install build-essential cmake libopencv-dev libpython3-dev
+#
+# On macOS (with Homebrew):
+# brew install cmake opencv python
+#
+# On Windows (with vcpkg and Visual Studio):
+# 1. Install Visual Studio (Community Edition is fine) with "Desktop development with C++" workload.
+# 2. Install vcpkg: https://vcpkg.io/en/getting-started.html
+# 3. Integrate vcpkg with Visual Studio: vcpkg integrate install
+# 4. Install OpenCV: vcpkg install opencv4[core,imgcodecs,videoio,highgui]:x64-windows
+#
+# After installing dependencies, navigate to the VISION_Recognition directory and build:
+# cd VISION_Recognition
+# cmake -B build
+# cmake --build build
+
+# UAV_server (Rust Component)
+# Requires Rustup for Rust toolchain management.
+#
+# Install Rustup:
+# curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# source $HOME/.cargo/env
+#
+# Then, navigate to the UAV_server directory and build:
+# cd UAV_server
+# cargo build --release
+
+# UAV_Controller (.NET MAUI Component)
+# Requires .NET 8 SDK and .NET MAUI workload.
+#
+# Install .NET 8 SDK: https://dotnet.microsoft.com/download/dotnet/8.0
+# Install MAUI workload:
+# dotnet workload install maui
+#
+# Then, navigate to the UAV_Controller/MauiApp1 directory and run:
+# cd UAV_Controller/MauiApp1
+# dotnet build
+# dotnet publish -f net8.0-windows10.0.19041.0 -c Release # For Windows
+# dotnet publish -f net8.0-android -c Release # For Android 
