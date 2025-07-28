@@ -12,7 +12,7 @@ The system provides a fully autonomous cycle of **"take-off → scanning → ana
 | **UAV_Controller** | .NET 8 (MAUI) | Operator UI, telemetry, DyTAM mission planning | Chapter 2, § 2.2–2.3 |
 | **VISION_Fuzzy** | Python | Fuzzy logic for defect criticality assessment | Chapter 3, § 3.5 |
 
-🔗 Download the full text of the dissertation: [Svystun_Dissertation](https://nauka.khmnu.ua/category/razovi/)
+🔗 Download the full text of the dissertation: [Svystun_Dissertation](https://nauka.khmnu.edu.ua/speczialnist-123-kompyuterna-inzheneriya-avtor-dysertacziyi-svystun-sergij-olegovych/)
 
 ---
 
@@ -37,7 +37,7 @@ The system utilizes an ensemble of YOLOv8 and Cascade R-CNN models for object de
 | Recall | 85% | 92% |
 | F1-score | 87% | 93% |
 
-*Data adapted from: Svystun, S., Melnychenko, O., Radiuk, P., Savenko, O., Sachenko, A., & Lysyi, A. (2024). Thermal and RGB Images Work Better Together in Wind Turbine Damage Detection. International Journal of Computing, 23(4), 526–535. [https://computingonline.net/computing/article/view/3752](https://computingonline.net/computing/article/view/3752)*
+*Data adapted from: Svystun, S., Melnychenko, O., Radiuk, P., Savenko, O., Sachenko, A., & Lysyi, A. (2024). Thermal and RGB Images Work Better Together in Wind Turbine Damage Detection. International Journal of Computing, 23(4), 526–535. [https://doi.org/10.47839/ijc.23.4.3752](https://doi.org/10.47839/ijc.23.4.3752)*
 
 ### 2.2. UAV_Controller: Dynamic Trajectory Adaptation (DyTAM)
 
@@ -67,7 +67,7 @@ DyTAM significantly enhances inspection performance compared to manual control a
 | Blade Coverage | - | - | **6% increase** |
 | Mean Deviation (m) | 3.57 (horizontal blade, nominal) | 0.68 (horizontal blade, nominal) | **68% reduction** (average across components) |
 
-*Data adapted from: Svystun, S., Scislo, L., Pawlik, M., Melnychenko, O., Radiuk, P., Savenko, O., & Sachenko, A. (2025). DyTAM: Accelerating Wind Turbine Inspections with Dynamic UAV Trajectory Adaptation. Energies, 18(7), 1823. [https://www.mdpi.com/1996-1073/18/7/1823](https://www.mdpi.com/1996-1073/18/7/1823)*
+*Data adapted from: Svystun, S., Scislo, L., Pawlik, M., Melnychenko, O., Radiuk, P., Savenko, O., & Sachenko, A. (2025). DyTAM: Accelerating Wind Turbine Inspections with Dynamic UAV Trajectory Adaptation. Energies, 18(7), 1823. [https://doi.org/10.3390/en18071823](https://doi.org/10.3390/en18071823)*
 
 ### 2.3. UAV_server: Backend & Communication Hub
 
