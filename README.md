@@ -1,9 +1,31 @@
 # UAV Wind-Turbine Inspection Suite
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 This repository contains the source code for a cyber-physical system described in the dissertation:
 > Svystun S.O. Methods and means of dynamic collection of visual data on defects of wind energy objects. — Khmelnytskyi, 2025.
 
-The system provides a fully autonomous cycle of **"take-off → scanning → analysis → report"**, reducing the inspection time of one turbine from 4 hours to ≈25 minutes with an average defect detection accuracy of 92%. The architecture of the cyber-physical system consists of three interconnected components:
+The system provides a fully autonomous cycle of **"take-off → scanning → analysis → report"**, reducing the inspection time of one turbine from 4 hours to ≈25 minutes with an average defect detection accuracy of 92%.
+
+🔗 Download the full text of the dissertation: [Svystun_Dissertation](https://nauka.khmnu.edu.ua/speczialnist-123-kompyuterna-inzheneriya-avtor-dysertacziyi-svystun-sergij-olegovych/)
+
+---
+
+## 1. Quick Start
+
+Ensure you have the prerequisites installed (see section 4.1). Then, from the project root, run the unified build script:
+
+```powershell
+./build.ps1
+```
+
+This will build all the necessary components. After a successful build, you can run the server and the controller application as described in the "Usage" section.
+
+---
+
+## 2. Architecture
+
+The architecture of the cyber-physical system consists of three interconnected components:
 
 | Subsystem | Language | Purpose | Dissertation Reference |
 |---|---|---|---|
@@ -12,15 +34,13 @@ The system provides a fully autonomous cycle of **"take-off → scanning → ana
 | **UAV_Controller** | .NET 8 (MAUI) | Operator UI, telemetry, DyTAM mission planning | Chapter 2, § 2.2–2.3 |
 | **VISION_Fuzzy** | Python | Fuzzy logic for defect criticality assessment | Chapter 3, § 3.5 |
 
-🔗 Download the full text of the dissertation: [Svystun_Dissertation](https://nauka.khmnu.edu.ua/speczialnist-123-kompyuterna-inzheneriya-avtor-dysertacziyi-svystun-sergij-olegovych/)
-
 ---
 
-## 2. Technical Details & Implementation
+## 3. Technical Details & Implementation
 
 This section provides an in-depth look at each core component of the UAV Wind-Turbine Inspection Suite, detailing their functionalities, underlying technologies, and performance metrics.
 
-### 2.1. VISION_Recognition: Advanced Defect Detection
+### 3.1. VISION_Recognition: Advanced Defect Detection
 
 The `VISION_Recognition` subsystem is responsible for multispectral image processing and defect detection on wind turbine blades. It leverages a sophisticated approach that integrates thermal and RGB images to enhance defect detection efficiency.
 
@@ -39,7 +59,7 @@ The system utilizes an ensemble of YOLOv8 and Cascade R-CNN models for object de
 
 *Data adapted from: Svystun, S., Melnychenko, O., Radiuk, P., Savenko, O., Sachenko, A., & Lysyi, A. (2024). Thermal and RGB Images Work Better Together in Wind Turbine Damage Detection. International Journal of Computing, 23(4), 526–535. [https://doi.org/10.47839/ijc.23.4.3752](https://doi.org/10.47839/ijc.23.4.3752)*
 
-### 2.2. UAV_Controller: Dynamic Trajectory Adaptation (DyTAM)
+### 3.2. UAV_Controller: Dynamic Trajectory Adaptation (DyTAM)
 
 The `UAV_Controller` subsystem implements the Dynamic Trajectory Adaptation Method (DyTAM), a novel approach for automated UAV-based wind turbine inspections. DyTAM dynamically adjusts UAV flight paths based on real-time visual data, optimizing inspection efficiency and data quality.
 
@@ -69,7 +89,7 @@ DyTAM significantly enhances inspection performance compared to manual control a
 
 *Data adapted from: Svystun, S., Scislo, L., Pawlik, M., Melnychenko, O., Radiuk, P., Savenko, O., & Sachenko, A. (2025). DyTAM: Accelerating Wind Turbine Inspections with Dynamic UAV Trajectory Adaptation. Energies, 18(7), 1823. [https://doi.org/10.3390/en18071823](https://doi.org/10.3390/en18071823)*
 
-### 2.3. UAV_server: Backend & Communication Hub
+### 3.3. UAV_server: Backend & Communication Hub
 
 The `UAV_server` component, built with Rust, acts as the central communication bus for the entire system. It handles real-time data streaming and serves as a scalable backend for analysis services.
 
@@ -77,7 +97,7 @@ The `UAV_server` component, built with Rust, acts as the central communication b
 * **Kubernetes Scaling:** Designed for scalable deployment, allowing for efficient management of computational resources for data processing and analysis.
 * **Streaming Analysis:** Enables real-time processing of incoming data streams from the UAV, crucial for dynamic adaptation and immediate report generation.
 
-### 2.4. VISION_Fuzzy: Defect Criticality Assessment
+### 3.4. VISION_Fuzzy: Defect Criticality Assessment
 
 The `VISION_Fuzzy` subsystem implements a Fuzzy Inference System (FIS) for the autonomous assessment of wind turbine defect criticality. It leverages fuzzy logic to evaluate defect severity based on three key input parameters:
 
@@ -89,23 +109,9 @@ The FIS employs 27 meticulously defined fuzzy rules to map these inputs to a `Cr
 
 ---
 
-## 3. Project Structure
-
-```text
-UAV/
-├── UAV_Controller/             # .NET MAUI application for UAV control and UI
-├── UAV_server/                 # Rust-based gRPC server for backend services
-├── VISION_Fuzzy/               # Fuzzy logic implementation for defect criticality assessment
-├── VISION_Recognition/         # C++/Python module for multispectral image processing and defect detection
-├── LICENSE                     # Project license file
-└── README.md                   # This README file
-```
-
----
-
 ## 4. Installation & Setup
 
-This project comprises several components, each with its own dependencies and build process. Follow the steps below to set up your environment and run the system. For more detailed, OS-specific instructions, refer to the `requirements.txt` file.
+This project comprises several components, each with its own dependencies.
 
 ### 4.1. Prerequisites
 
@@ -125,53 +131,27 @@ Ensure you have the following installed:
 * **.NET 8 SDK**: For `UAV_Controller`.
 * **Visual Studio 2022 (17.9+) / VS Code with MAUI extensions**: For developing `UAV_Controller`.
 
-### 4.2. Building and Running
+### 4.2. Building the Project
 
-Follow these steps to build and run the entire UAV inspection system:
+To build all components of the suite, run the provided PowerShell script from the root directory. This script will handle the build process for each sub-project automatically.
 
-1. **Build the Computer Vision Module (`VISION_Recognition`)**
+```powershell
+./build.ps1
+```
 
-    ```bash
-    cd VISION_Recognition
-    mkdir build
-    cd build
-    cmake .. -DCMAKE_BUILD_TYPE=Release
-    make -j$(nproc) # Or `cmake --build .` on Windows/macOS
-    cd ../..
-    ```
-
-2. **Build the Server Bus (`UAV_server`)**
-
-    ```bash
-    cd UAV_server
-    cargo build --release
-    cd ..
-    ```
-
-3. **Run the Server**
-    The server listens on gRPC (port 50051) and MQTT (port 1883).
-
-    ```bash
-    ./UAV_server/target/release/uav_server
-    ```
-
-4. **Build and Run the UI (`UAV_Controller`)**
-    Open the solution in Visual Studio or build from the command line:
-
-    ```bash
-    # Open in Visual Studio
-    open UAV_Controller/UAV_Controller.sln
-
-    # Or build from command line
-    dotnet build UAV_Controller -c Release
-    dotnet run --project UAV_Controller # To run (replace with appropriate target framework if needed)
-    ```
+The script will:
+1.  Build the Computer Vision Module (`VISION_Recognition`).
+2.  Build the Server Bus (`UAV_server`).
+3.  Build the UI Controller (`UAV_Controller`).
 
 ---
 
 ## 5. Usage
 
 1. **Run** `uav_server` in a Kubernetes cluster or locally.
+    ```bash
+    ./UAV_server/target/release/uav_server
+    ```
 2. **Connect** the ground station to the drone (PX4 / ArduPilot).
 3. **Open** `UAV_Controller`, select "New Mission → DyTAM".
 4. **Press** "Start". After landing, a PDF report will be automatically generated in `~/UAV_reports/`.

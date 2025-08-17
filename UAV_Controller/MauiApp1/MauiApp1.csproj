@@ -64,4 +64,8 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Protobuf Include="..\..\protos\*.proto" GrpcServices="Client" />
+    </ItemGroup>
+
 </Project>

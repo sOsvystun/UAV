@@ -1,0 +1,201 @@
+{
+  "system_info": {
+    "name": "Enhanced Wind Turbine Inspection System",
+    "version": "1.0.0",
+    "description": "Complete implementation of research paper framework",
+    "research_paper": "Criticality Assessment of Wind Turbine Defects via Multispectral UAV Fusion and Fuzzy Logic"
+  },
+  
+  "camera_parameters": {
+    "focal_length_mm": 24.0,
+    "pixel_size_um": 5.5,
+    "sensor_width_pixels": 1920,
+    "sensor_height_pixels": 1080,
+    "calibration_file": "camera_calibration.xml",
+    "distortion_correction": true
+  },
+  
+  "photogrammetric_data": {
+    "default_distance_to_target_m": 10.0,
+    "default_scaling_factor": 0.1,
+    "altitude_source": "gps",
+    "coordinate_system": "utm"
+  },
+  
+  "image_processing": {
+    "preprocessing": {
+      "bilateral_filter": {
+        "enabled": true,
+        "d": 9,
+        "sigma_color": 75.0,
+        "sigma_space": 75.0
+      },
+      "clahe": {
+        "enabled": true,
+        "clip_limit": 2.0,
+        "tile_grid_size": [8, 8]
+      },
+      "adaptive_threshold": {
+        "block_size": 11,
+        "c_constant": 2.0
+      }
+    },
+    
+    "multispectral_fusion": {
+      "enabled": true,
+      "alignment_method": "homography",
+      "fusion_weights": {
+        "rgb_weight": 0.7,
+        "thermal_weight": 0.3
+      },
+      "thermal_colormap": "jet"
+    },
+    
+    "morphological_operations": {
+      "kernel_shape": "ellipse",
+      "kernel_size": [5, 5],
+      "erosion_iterations": 1,
+      "dilation_iterations": 1
+    }
+  },
+  
+  "yolo_ensemble": {
+    "models": [
+      {
+        "model_path": "models/yolov8n_defects.onnx",
+        "model_name": "YOLOv8n-Defects",
+        "confidence_threshold": 0.5,
+        "nms_threshold": 0.4,
+        "input_size": [640, 640],
+        "enabled": true
+      },
+      {
+        "model_path": "models/yolov8s_defects.onnx", 
+        "model_name": "YOLOv8s-Defects",
+        "confidence_threshold": 0.6,
+        "nms_threshold": 0.4,
+        "input_size": [640, 640],
+        "enabled": true
+      },
+      {
+        "model_path": "models/yolov8m_defects.onnx",
+        "model_name": "YOLOv8m-Defects", 
+        "confidence_threshold": 0.7,
+        "nms_threshold": 0.4,
+        "input_size": [640, 640],
+        "enabled": false
+      }
+    ],
+    
+    "ensemble_parameters": {
+      "confidence_threshold": 0.5,
+      "nms_threshold": 0.4,
+      "min_detection_count": 1,
+      "enable_consensus_filtering": true
+    },
+    
+    "class_names": ["crack", "erosion", "hotspot"],
+    
+    "performance_monitoring": {
+      "enabled": true,
+      "log_inference_times": true,
+      "log_nms_times": true
+    }
+  },
+  
+  "quality_assessment": {
+    "image_quality": {
+      "enabled": true,
+      "min_sharpness_score": 0.1,
+      "min_brightness_score": 0.2,
+      "min_contrast_score": 0.3,
+      "max_noise_level": 0.5
+    },
+    
+    "detection_quality": {
+      "enabled": true,
+      "min_confidence_threshold": 0.5,
+      "min_detections_per_component": 1,
+      "require_consensus": false,
+      "max_false_positive_rate": 0.1
+    }
+  },
+  
+  "fuzzy_logic_integration": {
+    "enabled": true,
+    "python_script_path": "../VISION_Fuzzy/integration_bridge.py",
+    "python_executable": "python",
+    "timeout_seconds": 30,
+    "temp_directory": "temp/",
+    "cleanup_temp_files": true
+  },
+  
+  "output_configuration": {
+    "save_intermediate_results": false,
+    "enable_visualization": true,
+    "output_formats": {
+      "json": true,
+      "csv": true,
+      "xml": false
+    },
+    
+    "visualization": {
+      "save_annotated_images": true,
+      "save_thermal_overlays": true,
+      "annotation_thickness": 2,
+      "font_scale": 0.6,
+      "color_scheme": "default"
+    },
+    
+    "reports": {
+      "generate_summary": true,
+      "generate_detailed_csv": true,
+      "include_metadata": true,
+      "precision_digits": 3
+    }
+  },
+  
+  "logging": {
+    "level": "INFO",
+    "log_to_file": true,
+    "log_file_path": "logs/inspection.log",
+    "max_log_size_mb": 10,
+    "backup_count": 5,
+    "console_output": true
+  },
+  
+  "performance": {
+    "max_threads": 0,
+    "gpu_acceleration": {
+      "enabled": false,
+      "device_id": 0,
+      "memory_fraction": 0.8
+    },
+    "memory_optimization": {
+      "enabled": true,
+      "max_image_size": [2048, 2048],
+      "tile_processing": false
+    }
+  },
+  
+  "validation": {
+    "enable_input_validation": true,
+    "enable_output_validation": true,
+    "strict_mode": false,
+    "validation_timeout_seconds": 10
+  },
+  
+  "research_paper_compliance": {
+    "enforce_27_rules": true,
+    "enforce_epri_levels": true,
+    "enforce_iec_61400_weights": true,
+    "validate_three_block_architecture": true
+  },
+  
+  "experimental_features": {
+    "advanced_thermal_analysis": false,
+    "multi_scale_detection": false,
+    "temporal_analysis": false,
+    "uncertainty_quantification": false
+  }
+}

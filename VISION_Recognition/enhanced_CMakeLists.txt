@@ -1,0 +1,162 @@
+cmake_minimum_required(VERSION 3.20)
+project(EnhancedWindTurbineInspection)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Set build type
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+# Compiler-specific options
+if(MSVC)
+    add_compile_options(/W4)
+else()
+    add_compile_options(-Wall -Wextra -pedantic -O3)
+endif()
+
+# Find required packages
+find_package(OpenCV REQUIRED)
+find_package(PkgConfig REQUIRED)
+
+# Find jsoncpp
+pkg_check_modules(JSONCPP jsoncpp)
+if(NOT JSONCPP_FOUND)
+    find_package(jsoncpp REQUIRED)
+    set(JSONCPP_LIBRARIES jsoncpp_lib)
+endif()
+
+# Include directories
+include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+# Source files for the enhanced image processor
+set(IMAGE_PROCESSOR_SOURCES
+    enhanced_image_processor.cpp
+    enhanced_image_processor.h
+)
+
+# Source files for the YOLO ensemble detector
+set(YOLO_DETECTOR_SOURCES
+    yolo_ensemble_detector.cpp
+    yolo_ensemble_detector.h
+)
+
+# Main application source
+set(MAIN_SOURCES
+    enhanced_main.cpp
+)
+
+# Create the enhanced image processor library
+add_library(enhanced_image_processor STATIC ${IMAGE_PROCESSOR_SOURCES})
+target_link_libraries(enhanced_image_processor ${OpenCV_LIBS})
+
+# Create the YOLO ensemble detector library
+add_library(yolo_ensemble_detector STATIC ${YOLO_DETECTOR_SOURCES})
+target_link_libraries(yolo_ensemble_detector ${OpenCV_LIBS} enhanced_image_processor)
+
+# Create the main executable
+add_executable(enhanced_wind_turbine_inspection ${MAIN_SOURCES})
+target_link_libraries(enhanced_wind_turbine_inspection 
+    enhanced_image_processor 
+    yolo_ensemble_detector 
+    ${OpenCV_LIBS} 
+    ${JSONCPP_LIBRARIES}
+)
+
+# Create test executable for image processor
+add_executable(test_image_processor test_image_processor.cpp)
+target_link_libraries(test_image_processor enhanced_image_processor ${OpenCV_LIBS})
+
+# Create test executable for YOLO detector
+add_executable(test_yolo_detector test_yolo_detector.cpp)
+target_link_libraries(test_yolo_detector yolo_ensemble_detector ${OpenCV_LIBS})
+
+# Create integration test executable
+add_executable(integration_test integration_test.cpp)
+target_link_libraries(integration_test 
+    enhanced_image_processor 
+    yolo_ensemble_detector 
+    ${OpenCV_LIBS} 
+    ${JSONCPP_LIBRARIES}
+)
+
+# Set output directories
+set_target_properties(enhanced_wind_turbine_inspection PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+set_target_properties(test_image_processor PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+)
+
+set_target_properties(test_yolo_detector PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+)
+
+set_target_properties(integration_test PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+)
+
+# Installation rules
+install(TARGETS enhanced_wind_turbine_inspection
+    RUNTIME DESTINATION bin
+)
+
+install(FILES 
+    enhanced_image_processor.h
+    yolo_ensemble_detector.h
+    DESTINATION include
+)
+
+# Create directories for models and config
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/models)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/config)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/output)
+
+# Copy configuration files
+configure_file(${CMAKE_SOURCE_DIR}/config/default_config.json 
+               ${CMAKE_BINARY_DIR}/config/default_config.json COPYONLY)
+
+# Print build information
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "OpenCV version: ${OpenCV_VERSION}")
+message(STATUS "OpenCV libraries: ${OpenCV_LIBS}")
+message(STATUS "C++ standard: ${CMAKE_CXX_STANDARD}")
+
+# Enable testing
+enable_testing()
+
+# Add tests
+add_test(NAME ImageProcessorTest COMMAND test_image_processor)
+add_test(NAME YOLODetectorTest COMMAND test_yolo_detector)
+add_test(NAME IntegrationTest COMMAND integration_test)
+
+# Custom targets for documentation and formatting
+find_program(DOXYGEN_EXECUTABLE doxygen)
+if(DOXYGEN_EXECUTABLE)
+    add_custom_target(docs
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_SOURCE_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMENT "Generating documentation with Doxygen"
+    )
+endif()
+
+find_program(CLANG_FORMAT_EXECUTABLE clang-format)
+if(CLANG_FORMAT_EXECUTABLE)
+    file(GLOB_RECURSE ALL_SOURCE_FILES *.cpp *.h)
+    add_custom_target(format
+        COMMAND ${CLANG_FORMAT_EXECUTABLE} -i ${ALL_SOURCE_FILES}
+        COMMENT "Formatting source code with clang-format"
+    )
+endif()
+
+# Package configuration
+set(CPACK_PACKAGE_NAME "EnhancedWindTurbineInspection")
+set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Enhanced Wind Turbine Inspection System with Multispectral Analysis and Fuzzy Logic")
+set(CPACK_PACKAGE_VENDOR "UAV Inspection Research Team")
+
+include(CPack)

@@ -1,0 +1,276 @@
+syntax = "proto3";
+
+package uav.detection.v1;
+
+import "common.proto";
+
+option go_package = "github.com/uav/shared/proto/detection/v1";
+option java_package = "com.uav.detection.v1";
+option csharp_namespace = "Uav.Detection.V1";
+
+service DefectDetectionService {
+  rpc DetectDefects(DetectDefectsRequest) returns (DetectDefectsResponse);
+  rpc BatchDetectDefects(BatchDetectDefectsRequest) returns (BatchDetectDefectsResponse);
+  rpc GetDetectionModels(GetDetectionModelsRequest) returns (GetDetectionModelsResponse);
+  rpc ValidateImage(ValidateImageRequest) returns (ValidateImageResponse);
+}
+
+message DetectDefectsRequest {
+  string request_id = 1;
+  uav.common.v1.Image rgb_image = 2;
+  uav.common.v1.Image thermal_image = 3;
+  DetectionParameters parameters = 4;
+  string turbine_id = 5;
+  string component_id = 6;
+}
+
+message DetectDefectsResponse {
+  oneof result {
+    DetectionResult detection_result = 1;
+    uav.common.v1.ErrorResponse error = 2;
+  }
+}
+
+message BatchDetectDefectsRequest {
+  string batch_id = 1;
+  repeated DetectDefectsRequest requests = 2;
+  BatchProcessingOptions options = 3;
+}
+
+message BatchDetectDefectsResponse {
+  string batch_id = 1;
+  repeated DetectDefectsResponse responses = 2;
+  BatchProcessingStats stats = 3;
+}
+
+message GetDetectionModelsRequest {
+  // Empty for now, could add filtering in the future
+}
+
+message GetDetectionModelsResponse {
+  repeated ModelInfo available_models = 1;
+}
+
+message ValidateImageRequest {
+  uav.common.v1.Image image = 1;
+  ImageValidationCriteria criteria = 2;
+}
+
+message ValidateImageResponse {
+  bool is_valid = 1;
+  repeated ValidationIssue issues = 2;
+  ImageQualityMetrics quality_metrics = 3;
+}
+
+message DetectionResult {
+  string request_id = 1;
+  repeated Defect defects = 2;
+  ProcessingMetadata metadata = 3;
+  ImageAnalysis image_analysis = 4;
+  double processing_time_ms = 5;
+}
+
+message Defect {
+  string defect_id = 1;
+  DefectType type = 2;
+  double confidence = 3;
+  uav.common.v1.BoundingBox bounding_box = 4;
+  uav.common.v1.Point3D world_coordinates = 5;
+  DefectSeverity severity = 6;
+  double size_pixels = 7;
+  double size_meters = 8;
+  ThermalSignature thermal_signature = 9;
+  map<string, string> attributes = 10;
+}
+
+message DetectionParameters {
+  double confidence_threshold = 1;
+  double nms_threshold = 2;
+  repeated string model_names = 3;
+  bool enable_ensemble = 4;
+  bool enable_thermal_fusion = 5;
+  ImagePreprocessing preprocessing = 6;
+}
+
+message BatchProcessingOptions {
+  int32 max_concurrent_requests = 1;
+  int32 timeout_seconds = 2;
+  bool fail_fast = 3;
+}
+
+message BatchProcessingStats {
+  int32 total_requests = 1;
+  int32 successful_requests = 2;
+  int32 failed_requests = 3;
+  double total_processing_time_ms = 4;
+  double average_processing_time_ms = 5;
+}
+
+message ModelInfo {
+  string model_name = 1;
+  string version = 2;
+  ModelType type = 3;
+  repeated string supported_defect_types = 4;
+  double accuracy = 5;
+  string description = 6;
+}
+
+message ImageValidationCriteria {
+  int32 min_width = 1;
+  int32 min_height = 2;
+  int32 max_width = 3;
+  int32 max_height = 4;
+  repeated string allowed_formats = 5;
+  int64 max_file_size_bytes = 6;
+}
+
+message ValidationIssue {
+  IssueSeverity severity = 1;
+  string description = 2;
+  string field = 3;
+}
+
+message ImageQualityMetrics {
+  double sharpness_score = 1;
+  double brightness_score = 2;
+  double contrast_score = 3;
+  double noise_level = 4;
+  bool is_blurry = 5;
+  bool is_overexposed = 6;
+  bool is_underexposed = 7;
+}
+
+message ProcessingMetadata {
+  repeated string models_used = 1;
+  string algorithm_version = 2;
+  int64 processed_timestamp_ms = 3;
+  map<string, string> processing_parameters = 4;
+}
+
+message ImageAnalysis {
+  ComponentClassification component = 1;
+  SurfaceCondition surface_condition = 2;
+  EnvironmentalFactors environmental_factors = 3;
+}
+
+message ThermalSignature {
+  double temperature_celsius = 1;
+  double temperature_delta = 2;
+  ThermalPattern pattern = 3;
+  double thermal_contrast = 4;
+}
+
+message ImagePreprocessing {
+  bool enable_denoising = 1;
+  bool enable_contrast_enhancement = 2;
+  bool enable_histogram_equalization = 3;
+  ResizeOptions resize_options = 4;
+}
+
+message ComponentClassification {
+  ComponentType type = 1;
+  double confidence = 2;
+  uav.common.v1.BoundingBox bounding_box = 3;
+}
+
+message SurfaceCondition {
+  SurfaceType surface_type = 1;
+  double roughness_score = 2;
+  double wear_level = 3;
+}
+
+message EnvironmentalFactors {
+  LightingCondition lighting = 1;
+  WeatherImpact weather_impact = 2;
+  double visibility_score = 3;
+}
+
+message ResizeOptions {
+  int32 target_width = 1;
+  int32 target_height = 2;
+  ResizeMethod method = 3;
+}
+
+enum DefectType {
+  DEFECT_TYPE_UNSPECIFIED = 0;
+  DEFECT_TYPE_CRACK = 1;
+  DEFECT_TYPE_EROSION = 2;
+  DEFECT_TYPE_RUST = 3;
+  DEFECT_TYPE_PAINT_LOSS = 4;
+  DEFECT_TYPE_DELAMINATION = 5;
+  DEFECT_TYPE_LIGHTNING_DAMAGE = 6;
+  DEFECT_TYPE_ICE_DAMAGE = 7;
+  DEFECT_TYPE_FOREIGN_OBJECT = 8;
+}
+
+enum DefectSeverity {
+  DEFECT_SEVERITY_UNSPECIFIED = 0;
+  DEFECT_SEVERITY_NEGLIGIBLE = 1;
+  DEFECT_SEVERITY_LOW = 2;
+  DEFECT_SEVERITY_MEDIUM = 3;
+  DEFECT_SEVERITY_HIGH = 4;
+  DEFECT_SEVERITY_SEVERE = 5;
+}
+
+enum ModelType {
+  MODEL_TYPE_UNSPECIFIED = 0;
+  MODEL_TYPE_YOLO = 1;
+  MODEL_TYPE_DETECTRON = 2;
+  MODEL_TYPE_ENSEMBLE = 3;
+  MODEL_TYPE_THERMAL = 4;
+}
+
+enum IssueSeverity {
+  ISSUE_SEVERITY_UNSPECIFIED = 0;
+  ISSUE_SEVERITY_INFO = 1;
+  ISSUE_SEVERITY_WARNING = 2;
+  ISSUE_SEVERITY_ERROR = 3;
+}
+
+enum ComponentType {
+  COMPONENT_TYPE_UNSPECIFIED = 0;
+  COMPONENT_TYPE_BLADE = 1;
+  COMPONENT_TYPE_TOWER = 2;
+  COMPONENT_TYPE_NACELLE = 3;
+  COMPONENT_TYPE_HUB = 4;
+  COMPONENT_TYPE_SPINNER = 5;
+}
+
+enum SurfaceType {
+  SURFACE_TYPE_UNSPECIFIED = 0;
+  SURFACE_TYPE_COMPOSITE = 1;
+  SURFACE_TYPE_METAL = 2;
+  SURFACE_TYPE_PAINTED = 3;
+  SURFACE_TYPE_COATED = 4;
+}
+
+enum LightingCondition {
+  LIGHTING_CONDITION_UNSPECIFIED = 0;
+  LIGHTING_CONDITION_OPTIMAL = 1;
+  LIGHTING_CONDITION_LOW_LIGHT = 2;
+  LIGHTING_CONDITION_HARSH_SHADOWS = 3;
+  LIGHTING_CONDITION_OVERCAST = 4;
+}
+
+enum WeatherImpact {
+  WEATHER_IMPACT_UNSPECIFIED = 0;
+  WEATHER_IMPACT_NONE = 1;
+  WEATHER_IMPACT_LIGHT_RAIN = 2;
+  WEATHER_IMPACT_FOG = 3;
+  WEATHER_IMPACT_DUST = 4;
+}
+
+enum ThermalPattern {
+  THERMAL_PATTERN_UNSPECIFIED = 0;
+  THERMAL_PATTERN_HOTSPOT = 1;
+  THERMAL_PATTERN_COLD_SPOT = 2;
+  THERMAL_PATTERN_GRADIENT = 3;
+  THERMAL_PATTERN_UNIFORM = 4;
+}
+
+enum ResizeMethod {
+  RESIZE_METHOD_UNSPECIFIED = 0;
+  RESIZE_METHOD_BILINEAR = 1;
+  RESIZE_METHOD_BICUBIC = 2;
+  RESIZE_METHOD_NEAREST = 3;
+}

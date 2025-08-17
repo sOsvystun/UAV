@@ -1,0 +1,317 @@
+syntax = "proto3";
+
+package uav.criticality.v1;
+
+import "common.proto";
+import "defect_detection.proto";
+
+option go_package = "github.com/uav/shared/proto/criticality/v1";
+option java_package = "com.uav.criticality.v1";
+option csharp_namespace = "Uav.Criticality.V1";
+
+service CriticalityAssessmentService {
+  rpc AssessDefectCriticality(AssessDefectCriticalityRequest) returns (AssessDefectCriticalityResponse);
+  rpc BatchAssessDefects(BatchAssessDefectsRequest) returns (BatchAssessDefectsResponse);
+  rpc GetAssessmentRules(GetAssessmentRulesRequest) returns (GetAssessmentRulesResponse);
+  rpc UpdateAssessmentRules(UpdateAssessmentRulesRequest) returns (UpdateAssessmentRulesResponse);
+}
+
+message AssessDefectCriticalityRequest {
+  string request_id = 1;
+  repeated DefectInput defects = 2;
+  AssessmentParameters parameters = 3;
+  string turbine_id = 4;
+  OperationalContext context = 5;
+}
+
+message AssessDefectCriticalityResponse {
+  oneof result {
+    CriticalityAssessmentResult assessment_result = 1;
+    uav.common.v1.ErrorResponse error = 2;
+  }
+}
+
+message BatchAssessDefectsRequest {
+  string batch_id = 1;
+  repeated AssessDefectCriticalityRequest requests = 2;
+}
+
+message BatchAssessDefectsResponse {
+  string batch_id = 1;
+  repeated AssessDefectCriticalityResponse responses = 2;
+}
+
+message GetAssessmentRulesRequest {
+  string rule_set_id = 1;
+}
+
+message GetAssessmentRulesResponse {
+  AssessmentRuleSet rule_set = 1;
+}
+
+message UpdateAssessmentRulesRequest {
+  AssessmentRuleSet rule_set = 1;
+  string updated_by = 2;
+}
+
+message UpdateAssessmentRulesResponse {
+  bool success = 1;
+  string new_version = 2;
+}
+
+message DefectInput {
+  string defect_id = 1;
+  uav.detection.v1.DefectType type = 2;
+  double confidence = 3;
+  double size_pixels = 4;
+  double size_meters = 5;
+  double location_normalized = 6; // 0.0 = root, 1.0 = tip
+  ThermalCharacteristics thermal = 7;
+  ComponentLocation component_location = 8;
+}
+
+message CriticalityAssessmentResult {
+  string request_id = 1;
+  repeated DefectCriticalityRating ratings = 2;
+  OverallAssessment overall_assessment = 3;
+  AssessmentMetadata metadata = 4;
+}
+
+message DefectCriticalityRating {
+  string defect_id = 1;
+  double criticality_score = 2; // 0.0 to 5.0
+  CriticalityLevel level = 3;
+  MaintenanceRecommendation recommendation = 4;
+  RiskFactors risk_factors = 5;
+  double confidence = 6;
+}
+
+message AssessmentParameters {
+  string rule_set_version = 1;
+  AssessmentMode mode = 2;
+  double sensitivity_factor = 3;
+  bool include_environmental_factors = 4;
+  bool include_operational_history = 5;
+}
+
+message OperationalContext {
+  TurbineOperationalData operational_data = 1;
+  EnvironmentalConditions environmental_conditions = 2;
+  MaintenanceHistory maintenance_history = 3;
+}
+
+message ThermalCharacteristics {
+  double temperature_celsius = 1;
+  double temperature_delta = 2;
+  ThermalDistribution distribution = 3;
+  double thermal_gradient = 4;
+}
+
+message ComponentLocation {
+  ComponentSection section = 1;
+  double distance_from_root_meters = 2;
+  double circumferential_position_degrees = 3;
+  SurfaceOrientation orientation = 4;
+}
+
+message OverallAssessment {
+  CriticalityLevel highest_criticality = 1;
+  int32 total_defects = 2;
+  int32 critical_defects = 3;
+  double overall_risk_score = 4;
+  UrgencyLevel maintenance_urgency = 5;
+  repeated string key_concerns = 6;
+}
+
+message MaintenanceRecommendation {
+  ActionType recommended_action = 1;
+  UrgencyLevel urgency = 2;
+  int32 recommended_timeframe_days = 3;
+  string description = 4;
+  double estimated_cost_usd = 5;
+  repeated string required_resources = 6;
+}
+
+message RiskFactors {
+  double structural_risk = 1;
+  double performance_risk = 2;
+  double safety_risk = 3;
+  double propagation_risk = 4;
+  repeated string contributing_factors = 5;
+}
+
+message AssessmentMetadata {
+  string algorithm_version = 1;
+  string rule_set_version = 2;
+  int64 assessment_timestamp_ms = 3;
+  double processing_time_ms = 4;
+  map<string, string> parameters_used = 5;
+}
+
+message AssessmentRuleSet {
+  string rule_set_id = 1;
+  string version = 2;
+  repeated FuzzyRule fuzzy_rules = 3;
+  repeated CriticalityThreshold thresholds = 4;
+  map<string, double> weights = 5;
+  int64 created_timestamp_ms = 6;
+  string created_by = 7;
+}
+
+message FuzzyRule {
+  string rule_id = 1;
+  FuzzyCondition condition = 2;
+  FuzzyConsequent consequent = 3;
+  double weight = 4;
+  string description = 5;
+}
+
+message FuzzyCondition {
+  repeated FuzzyVariable variables = 1;
+  LogicalOperator operator = 2;
+}
+
+message FuzzyVariable {
+  string variable_name = 1;
+  FuzzySet fuzzy_set = 2;
+  double membership_value = 3;
+}
+
+message FuzzySet {
+  string set_name = 1;
+  FuzzySetType type = 2;
+  repeated double parameters = 3;
+}
+
+message FuzzyConsequent {
+  string output_variable = 1;
+  FuzzySet output_set = 2;
+}
+
+message CriticalityThreshold {
+  CriticalityLevel level = 1;
+  double min_score = 2;
+  double max_score = 3;
+}
+
+message TurbineOperationalData {
+  double power_output_kw = 1;
+  double rotor_speed_rpm = 2;
+  double blade_pitch_degrees = 3;
+  int64 operational_hours = 4;
+  double capacity_factor = 5;
+}
+
+message EnvironmentalConditions {
+  double wind_speed_ms = 1;
+  double temperature_celsius = 2;
+  double humidity_percent = 3;
+  double uv_index = 4;
+  int32 lightning_strikes_per_year = 5;
+}
+
+message MaintenanceHistory {
+  int64 last_inspection_timestamp_ms = 1;
+  int64 last_maintenance_timestamp_ms = 2;
+  repeated PreviousDefect previous_defects = 3;
+  int32 maintenance_cycles = 4;
+}
+
+message PreviousDefect {
+  string defect_id = 1;
+  uav.detection.v1.DefectType type = 2;
+  int64 first_detected_timestamp_ms = 3;
+  DefectProgression progression = 4;
+  bool was_repaired = 5;
+}
+
+message DefectProgression {
+  double initial_size = 1;
+  double current_size = 2;
+  double growth_rate = 3;
+  ProgressionTrend trend = 4;
+}
+
+enum CriticalityLevel {
+  CRITICALITY_LEVEL_UNSPECIFIED = 0;
+  CRITICALITY_LEVEL_NEGLIGIBLE = 1;
+  CRITICALITY_LEVEL_LOW = 2;
+  CRITICALITY_LEVEL_MEDIUM = 3;
+  CRITICALITY_LEVEL_HIGH = 4;
+  CRITICALITY_LEVEL_SEVERE = 5;
+}
+
+enum AssessmentMode {
+  ASSESSMENT_MODE_UNSPECIFIED = 0;
+  ASSESSMENT_MODE_CONSERVATIVE = 1;
+  ASSESSMENT_MODE_STANDARD = 2;
+  ASSESSMENT_MODE_AGGRESSIVE = 3;
+}
+
+enum ActionType {
+  ACTION_TYPE_UNSPECIFIED = 0;
+  ACTION_TYPE_MONITOR = 1;
+  ACTION_TYPE_SCHEDULE_INSPECTION = 2;
+  ACTION_TYPE_MINOR_REPAIR = 3;
+  ACTION_TYPE_MAJOR_REPAIR = 4;
+  ACTION_TYPE_COMPONENT_REPLACEMENT = 5;
+  ACTION_TYPE_IMMEDIATE_SHUTDOWN = 6;
+}
+
+enum UrgencyLevel {
+  URGENCY_LEVEL_UNSPECIFIED = 0;
+  URGENCY_LEVEL_ROUTINE = 1;
+  URGENCY_LEVEL_SCHEDULED = 2;
+  URGENCY_LEVEL_PRIORITY = 3;
+  URGENCY_LEVEL_URGENT = 4;
+  URGENCY_LEVEL_EMERGENCY = 5;
+}
+
+enum ComponentSection {
+  COMPONENT_SECTION_UNSPECIFIED = 0;
+  COMPONENT_SECTION_ROOT = 1;
+  COMPONENT_SECTION_MID_SPAN = 2;
+  COMPONENT_SECTION_TIP = 3;
+  COMPONENT_SECTION_LEADING_EDGE = 4;
+  COMPONENT_SECTION_TRAILING_EDGE = 5;
+}
+
+enum SurfaceOrientation {
+  SURFACE_ORIENTATION_UNSPECIFIED = 0;
+  SURFACE_ORIENTATION_PRESSURE_SIDE = 1;
+  SURFACE_ORIENTATION_SUCTION_SIDE = 2;
+  SURFACE_ORIENTATION_LEADING_EDGE = 3;
+  SURFACE_ORIENTATION_TRAILING_EDGE = 4;
+}
+
+enum ThermalDistribution {
+  THERMAL_DISTRIBUTION_UNSPECIFIED = 0;
+  THERMAL_DISTRIBUTION_UNIFORM = 1;
+  THERMAL_DISTRIBUTION_LOCALIZED = 2;
+  THERMAL_DISTRIBUTION_GRADIENT = 3;
+  THERMAL_DISTRIBUTION_SCATTERED = 4;
+}
+
+enum LogicalOperator {
+  LOGICAL_OPERATOR_UNSPECIFIED = 0;
+  LOGICAL_OPERATOR_AND = 1;
+  LOGICAL_OPERATOR_OR = 2;
+  LOGICAL_OPERATOR_NOT = 3;
+}
+
+enum FuzzySetType {
+  FUZZY_SET_TYPE_UNSPECIFIED = 0;
+  FUZZY_SET_TYPE_TRIANGULAR = 1;
+  FUZZY_SET_TYPE_TRAPEZOIDAL = 2;
+  FUZZY_SET_TYPE_GAUSSIAN = 3;
+  FUZZY_SET_TYPE_SIGMOID = 4;
+}
+
+enum ProgressionTrend {
+  PROGRESSION_TREND_UNSPECIFIED = 0;
+  PROGRESSION_TREND_STABLE = 1;
+  PROGRESSION_TREND_SLOW_GROWTH = 2;
+  PROGRESSION_TREND_MODERATE_GROWTH = 3;
+  PROGRESSION_TREND_RAPID_GROWTH = 4;
+  PROGRESSION_TREND_DECREASING = 5;
+}

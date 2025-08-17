@@ -1,0 +1,232 @@
+syntax = "proto3";
+
+package uav.trajectory.v1;
+
+import "common.proto";
+
+option go_package = "github.com/uav/shared/proto/trajectory/v1";
+option java_package = "com.uav.trajectory.v1";
+option csharp_namespace = "Uav.Trajectory.V1";
+
+service TrajectoryPlannerService {
+  rpc PlanInspectionTrajectory(PlanTrajectoryRequest) returns (PlanTrajectoryResponse);
+  rpc OptimizeTrajectory(OptimizeTrajectoryRequest) returns (OptimizeTrajectoryResponse);
+  rpc ValidateTrajectory(ValidateTrajectoryRequest) returns (ValidateTrajectoryResponse);
+  rpc GetTrajectoryStatus(GetTrajectoryStatusRequest) returns (GetTrajectoryStatusResponse);
+}
+
+message PlanTrajectoryRequest {
+  string mission_id = 1;
+  uav.common.v1.TurbineGeometry turbine_geometry = 2;
+  uav.common.v1.WeatherConditions weather = 3;
+  TrajectoryParameters parameters = 4;
+  repeated InspectionTarget targets = 5;
+}
+
+message PlanTrajectoryResponse {
+  oneof result {
+    TrajectoryPlan trajectory = 1;
+    uav.common.v1.ErrorResponse error = 2;
+  }
+}
+
+message OptimizeTrajectoryRequest {
+  string trajectory_id = 1;
+  OptimizationCriteria criteria = 2;
+  repeated Constraint constraints = 3;
+}
+
+message OptimizeTrajectoryResponse {
+  oneof result {
+    TrajectoryPlan optimized_trajectory = 1;
+    uav.common.v1.ErrorResponse error = 2;
+  }
+}
+
+message ValidateTrajectoryRequest {
+  TrajectoryPlan trajectory = 1;
+  uav.common.v1.WeatherConditions current_weather = 2;
+}
+
+message ValidateTrajectoryResponse {
+  bool is_valid = 1;
+  repeated ValidationIssue issues = 2;
+  SafetyAssessment safety_assessment = 3;
+}
+
+message GetTrajectoryStatusRequest {
+  string trajectory_id = 1;
+}
+
+message GetTrajectoryStatusResponse {
+  TrajectoryStatus status = 1;
+  double completion_percentage = 2;
+  uav.common.v1.Point3D current_position = 3;
+  int32 current_waypoint_index = 4;
+}
+
+message TrajectoryPlan {
+  string trajectory_id = 1;
+  string mission_id = 2;
+  repeated Waypoint waypoints = 3;
+  double estimated_duration_minutes = 4;
+  double estimated_battery_usage_percent = 5;
+  double total_distance_meters = 6;
+  TrajectoryMetadata metadata = 7;
+}
+
+message Waypoint {
+  uav.common.v1.Point3D position = 1;
+  double heading_degrees = 2;
+  double speed_ms = 3;
+  WaypointAction action = 4;
+  double dwell_time_seconds = 5;
+  map<string, string> parameters = 6;
+}
+
+message TrajectoryParameters {
+  double standoff_distance_meters = 1;
+  double max_speed_ms = 2;
+  double min_speed_ms = 3;
+  double max_acceleration_ms2 = 4;
+  TrajectoryType trajectory_type = 5;
+  bool enable_wind_compensation = 6;
+  double safety_margin_meters = 7;
+}
+
+message InspectionTarget {
+  string target_id = 1;
+  TargetType type = 2;
+  uav.common.v1.Point3D center_point = 3;
+  repeated uav.common.v1.Point3D boundary_points = 4;
+  InspectionPriority priority = 5;
+  repeated string required_sensors = 6;
+}
+
+message OptimizationCriteria {
+  double time_weight = 1;
+  double energy_weight = 2;
+  double coverage_weight = 3;
+  double safety_weight = 4;
+}
+
+message Constraint {
+  ConstraintType type = 1;
+  string description = 2;
+  map<string, double> parameters = 3;
+}
+
+message ValidationIssue {
+  IssueSeverity severity = 1;
+  string description = 2;
+  uav.common.v1.Point3D location = 3;
+  string recommendation = 4;
+}
+
+message SafetyAssessment {
+  SafetyLevel overall_safety = 1;
+  repeated SafetyRisk risks = 2;
+  repeated string mitigation_strategies = 3;
+}
+
+message TrajectoryMetadata {
+  int64 created_timestamp_ms = 1;
+  string created_by = 2;
+  string algorithm_version = 3;
+  map<string, string> generation_parameters = 4;
+}
+
+message SafetyRisk {
+  RiskType type = 1;
+  RiskLevel level = 2;
+  string description = 3;
+  double probability = 4;
+  string mitigation = 5;
+}
+
+enum TrajectoryType {
+  TRAJECTORY_TYPE_UNSPECIFIED = 0;
+  TRAJECTORY_TYPE_SPIRAL = 1;
+  TRAJECTORY_TYPE_HELICAL = 2;
+  TRAJECTORY_TYPE_OFFSET_LINE = 3;
+  TRAJECTORY_TYPE_GRID = 4;
+  TRAJECTORY_TYPE_CUSTOM = 5;
+}
+
+enum WaypointAction {
+  WAYPOINT_ACTION_UNSPECIFIED = 0;
+  WAYPOINT_ACTION_FLY_TO = 1;
+  WAYPOINT_ACTION_HOVER = 2;
+  WAYPOINT_ACTION_CAPTURE_IMAGE = 3;
+  WAYPOINT_ACTION_START_VIDEO = 4;
+  WAYPOINT_ACTION_STOP_VIDEO = 5;
+  WAYPOINT_ACTION_LAND = 6;
+  WAYPOINT_ACTION_TAKEOFF = 7;
+}
+
+enum TargetType {
+  TARGET_TYPE_UNSPECIFIED = 0;
+  TARGET_TYPE_BLADE = 1;
+  TARGET_TYPE_TOWER = 2;
+  TARGET_TYPE_NACELLE = 3;
+  TARGET_TYPE_HUB = 4;
+}
+
+enum InspectionPriority {
+  INSPECTION_PRIORITY_UNSPECIFIED = 0;
+  INSPECTION_PRIORITY_LOW = 1;
+  INSPECTION_PRIORITY_MEDIUM = 2;
+  INSPECTION_PRIORITY_HIGH = 3;
+  INSPECTION_PRIORITY_CRITICAL = 4;
+}
+
+enum ConstraintType {
+  CONSTRAINT_TYPE_UNSPECIFIED = 0;
+  CONSTRAINT_TYPE_NO_FLY_ZONE = 1;
+  CONSTRAINT_TYPE_ALTITUDE_LIMIT = 2;
+  CONSTRAINT_TYPE_SPEED_LIMIT = 3;
+  CONSTRAINT_TYPE_WEATHER_LIMIT = 4;
+}
+
+enum IssueSeverity {
+  ISSUE_SEVERITY_UNSPECIFIED = 0;
+  ISSUE_SEVERITY_INFO = 1;
+  ISSUE_SEVERITY_WARNING = 2;
+  ISSUE_SEVERITY_ERROR = 3;
+  ISSUE_SEVERITY_CRITICAL = 4;
+}
+
+enum SafetyLevel {
+  SAFETY_LEVEL_UNSPECIFIED = 0;
+  SAFETY_LEVEL_SAFE = 1;
+  SAFETY_LEVEL_CAUTION = 2;
+  SAFETY_LEVEL_WARNING = 3;
+  SAFETY_LEVEL_DANGER = 4;
+}
+
+enum RiskType {
+  RISK_TYPE_UNSPECIFIED = 0;
+  RISK_TYPE_COLLISION = 1;
+  RISK_TYPE_WEATHER = 2;
+  RISK_TYPE_BATTERY = 3;
+  RISK_TYPE_COMMUNICATION = 4;
+  RISK_TYPE_MECHANICAL = 5;
+}
+
+enum RiskLevel {
+  RISK_LEVEL_UNSPECIFIED = 0;
+  RISK_LEVEL_LOW = 1;
+  RISK_LEVEL_MEDIUM = 2;
+  RISK_LEVEL_HIGH = 3;
+  RISK_LEVEL_CRITICAL = 4;
+}
+
+enum TrajectoryStatus {
+  TRAJECTORY_STATUS_UNSPECIFIED = 0;
+  TRAJECTORY_STATUS_PLANNED = 1;
+  TRAJECTORY_STATUS_EXECUTING = 2;
+  TRAJECTORY_STATUS_PAUSED = 3;
+  TRAJECTORY_STATUS_COMPLETED = 4;
+  TRAJECTORY_STATUS_ABORTED = 5;
+  TRAJECTORY_STATUS_FAILED = 6;
+}

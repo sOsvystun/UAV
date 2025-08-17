@@ -1,0 +1,736 @@
+%=================================================================
+%  Document Class and Packages
+\documentclass[energies,article,submit,pdftex,moreauthors]{Definitions/mdpi}
+\usepackage{siunitx}      % For units and number alignment
+\usepackage{booktabs}     % For professional-looking tables
+\usepackage{tabularx}     % For tables with auto-wrapping columns
+\usepackage{multirow}     % For multi-row cells in tables
+\usepackage{amsmath}      % For advanced math environments
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{makecell}
+
+%=================================================================
+%  Revision Markup Commands
+%=================================================================
+\newcommand{\revtag}[2]{[\textbf{R#1-C#2}]}
+\newcommand{\Rone}[1]{\textcolor{red}{#1}}
+\newcommand{\Rtwo}[1]{\textcolor{blue}{#1}}
+\newcommand{\Rthree}[1]{\textcolor{purple}{#1}}
+
+%=================================================================
+%  Preamble and Metadata
+%=================================================================
+\firstpage{1}
+\makeatletter
+\setcounter{page}{\@firstpage}
+\makeatother
+\pubvolume{1}
+\issuenum{1}
+\articlenumber{0}
+\pubyear{2025}
+\copyrightyear{2025}
+\externaleditor{Academic Editor}
+\datereceived{}
+\daterevised{}
+\dateaccepted{}
+\datepublished{}
+\hreflink{https://doi.org/}
+
+%=================================================================
+% Full title of the paper (Capitalized)
+\Title{Criticality Assessment of Wind Turbine Defects via Multispectral UAV Fusion and Fuzzy Logic}
+
+% MDPI internal command: Title for citation in the left column
+\TitleCitation{Criticality Assessment of Wind Turbine Defects via Multispectral UAV Fusion and Fuzzy Logic}
+
+%=================================================================
+%  Authors and Affiliations
+%=================================================================
+% Author Orchid ID: enter ID or remove command
+\newcommand{\orcidauthorA}{0000-0003-3609-112X} % Pavlo Radiuk
+\newcommand{\orcidauthorB}{0000-0001-8654-2270} % Bohdan Rusyn
+\newcommand{\orcidauthorC}{0000-0001-8565-7092} % Oleksandr Melnychenko
+\newcommand{\orcidauthorD}{0000-0001-5105-5034} % Tomasz Perzynski
+\newcommand{\orcidauthorE}{0000-0002-0907-3682} % Anatoliy Sachenko
+\newcommand{\orcidauthorF}{0009-0009-8210-6450} % Serhii Svystun
+\newcommand{\orcidauthorG}{0000-0002-4104-745X} % Oleg Savenko
+
+% Authors, for the paper (add full first names)
+\Author{Pavlo Radiuk $^{1, *}$\orcidA{},
+    Bohdan Rusyn $^{2,3}$\orcidB{},
+    Oleksandr Melnychenko $^{1}$\orcidC{},
+    Tomasz Perzynski $^{3}$\orcidD{},
+    Anatoliy Sachenko $^{3,4}$\orcidE{},
+    Serhii Svystun $^{1}$\orcidF{} and
+    Oleg Savenko $^{1}$\orcidG{}
+}
+
+% MDPI internal command: Authors, for metadata in PDF
+\AuthorNames{Pavlo Radiuk, Bohdan Rusyn, Oleksandr Melnychenko, Tomasz Perzynski, Anatoliy Sachenko, Serhii Svystun, Oleg Savenko}
+
+% MDPI internal command: Authors, for citation in the left column
+\AuthorCitation{Radiuk, P.; Rusyn, B.; Melnychenko, O.; Perzynski, T.; Sachenko, A.; Svystun, S.; Savenko, O.}
+
+% Affiliations / Addresses
+\address{%
+$^{1}$ \quad Faculty of Information Technologies, Khmelnytskyi National University, 11, Instytuts’ka Str., 29016 Khmelnytskyi, Ukraine; melnychenko@khmnu.edu.ua (O.M.); svystuns@khmnu.edu.ua (S.S.); savenko\_oleg\_st@ukr.net (O.S.)\\
+$^{2}$ \quad Department of Information Technologies of Remote Sensing, Karpenko Physico-Mechanical Institute of NAS of Ukraine, 79601 Lviv, Ukraine; b.rusyn.prof@gmail.com (B.R.)\\
+$^{3}$ \quad Faculty of Transport, Electrical Engineering and Computer Science, Casimir Pulaski Radom University, 29, Malczewskiego St., 26-600 Radom, Poland; t.perzynski@uthrad.pl (T.P.); as@wunu.edu.ua (A.S.)\\
+$^{4}$ \quad Research Institute for Intelligent Computer Systems, West Ukrainian National University, 
+11, Lvivska Str., 46009 Ternopil, Ukraine
+}
+
+% Contact information of the corresponding authors
+\corres{Correspondence: radiukp@khmnu.edu.ua (P.R.)}
+
+%=================================================================
+%  Abstract and Keywords
+%=================================================================
+\abstract{Ensuring the structural integrity of wind turbines is crucial for the sustainability of wind energy. A significant challenge remains in transitioning from mere defect detection to objective, scalable criticality assessment for prioritizing maintenance. In this work, we propose a comprehensive framework that leverages multispectral unmanned aerial vehicle (UAV) imagery and a novel, standards-aligned fuzzy inference system to automate this task. \Rone{\revtag{1}{10}Our contribution is validated on two open, research-oriented datasets representing small on- and offshore machines: the public AQUADA-GO and Thermal WTB Inspection datasets.} An ensemble of YOLOv8n models trained on fused RGB-thermal data achieves a mean average precision (mAP@.5) of 92.8\% for detecting cracks, erosion, and thermal anomalies. The core novelty, a 27-rule Fuzzy Inference System derived from the IEC 61400-5 standard, translates quantitative defect parameters into a five-level criticality score. The system's output demonstrates exceptional fidelity to expert assessments, achieving a mean absolute error of 0.14 and a Pearson correlation of 0.97. This work provides a transparent, repeatable, and engineering-grounded proof-of-concept, demonstrating a promising pathway toward predictive, condition-based maintenance strategies and supporting the economic viability of wind energy.}
+
+\keyword{defect criticality; fuzzy logic; artificial intelligence; multispectral fusion; sustainable energy; UAV inspection; wind turbine blades; YOLO; condition-based maintenance; structural health monitoring.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%=================================================================
+%  1. INTRODUCTION
+%=================================================================
+\section{Introduction}\label{sec:intro}
+
+\Rone{\revtag{1}{3}As the global energy landscape pivots towards sustainability, wind power has become a cornerstone of renewable generation, with installed capacity expanding at an unprecedented rate.} However, the long-term economic viability of this multi-trillion-dollar investment hinges on the effectiveness of Operations and Maintenance (O\&M) strategies. A comprehensive review by Sun et al. highlights that ensuring the in-situ structural integrity of turbine blades is a critical, yet unresolved, challenge~\cite{Sun2022InSitu}. These massive composite structures face relentless environmental and operational stresses, leading to damage that can degrade performance or precipitate catastrophic failures~\cite{Kong2023Progress}. Consequently, O\&M activities constitute a substantial fraction of the levelized cost of energy, particularly for offshore installations where non-contact inspection methods are essential to mitigate the high costs and risks of manual assessment~\cite{Aminzadeh2023NonContact}.
+
+The advent of Unmanned Aerial Vehicles (UAVs) has revolutionized data acquisition for structural health monitoring, offering a safe and efficient alternative to traditional methods, as surveyed by Zhang et al.~\cite{Zhang2024Uav}. \Rthree{\revtag{3}{1}The integration of advanced communication protocols like 5G and microservice architectures further enhances the autonomy and scalability of UAV-based inspections, enabling near real-time data streaming and distributed processing~\cite{Banafaa2024Comprehensive}.} However, the immense volume of data collected necessitates automated analysis pipelines. While deep learning models, particularly the You Only Look Once (YOLO) architecture, have proven highly effective for raw defect detection~\cite{Yan2022Yolov4, Dai2024Image}, a significant ``criticality gap'' remains. A simple list of detected flaws is insufficient for informed decision-making, as noted in studies on multi-type defect detection~\cite{Mao2021Automatic}. The urgent need is to move beyond detection to diagnosis and prognosis, a challenge reviewed by Sun et al. in the context of machine learning applications for fault diagnosis~\cite{Sun2021Fault}.
+
+\Rone{\revtag{1}{3}A robust criticality score, which quantifies the severity of a defect, is the missing link needed to transition from reactive, time-based maintenance to predictive, condition-based maintenance (CBM)~\cite{Ogaili2023Methodological}.} Such a system must align with established engineering principles, as outlined in international standards like IEC~61400-5~\cite{iec61400-5} and industry taxonomies from the Electric Power Research Institute (EPRI)~\cite{epri2020whitepaper}. \Rtwo{\revtag{2}{7}To our knowledge, this paper introduces the first end-to-end framework to bridge this gap by explicitly grounding an interpretable AI model in these standards.} Our primary contribution is a transparent, ``glass-box'' Fuzzy Inference System (FIS) that translates quantitative defect parameters into a standards-aligned criticality score. By validating our approach on diverse public datasets—the large-scale offshore AQUADA-GO video collection~\cite{Chen2024Dataset} and the multispectral Thermal Wind Turbine Blade (WTB) Inspection dataset~\cite{Memari2024Data}—we present a reproducible and engineering-grounded solution. We demonstrate that this fusion of multispectral data and explainable AI provides an actionable tool for optimizing maintenance, enhancing safety, and ensuring the long-term sustainability of wind energy assets.
+
+\Rone{\revtag{1}{10}This paper introduces a complete, end-to-end framework designed to bridge this criticality gap. Our work builds upon foundational research in UAV inspection and AI-based detection but makes several novel contributions aimed at creating a system that is not only accurate but also transparent, reliable, and directly applicable in a real-world industrial setting.} \Rtwo{\revtag{2}{1}The goal of this study is to improve the objectivity and efficiency of wind turbine blade maintenance by developing an automated system that moves beyond simple defect detection to provide a reliable, standards-aligned criticality assessment. The primary objective is to create a transparent, data-driven tool that can prioritize repairs, optimize resource allocation, and enhance operational safety.}
+
+\Rone{\revtag{1}{1}To achieve this, the major contributions of this work are as follows:}
+\begin{itemize}
+    \item A robust multispectral detection pipeline, validated on the diverse public AQUADA-GO and Thermal WTB Inspection datasets, demonstrating its adaptability across different environments and providing a strong, reproducible baseline for future research. \Rone{\revtag{1}{10}In this context, `multispectral' refers to the combined use of the visible (RGB) and long-wave infrared (thermal) spectra.}
+    \item \Rone{\revtag{1}{1}A novel ``glass-box'' Fuzzy Inference System (FIS) for severity scoring, whose rules and variables are explicitly derived from the engineering principles of the IEC 61400-5 standard, ensuring its reasoning is auditable and trustworthy for domain experts.}
+    \item Comprehensive and reproducible scientific validation of the entire framework, including extensive ablation studies to quantify the contribution of each component, a formal protocol for establishing expert-derived ground truth, and sensitivity analyses to confirm the robustness of the FIS against parameter uncertainty.
+\end{itemize}
+
+The remainder of this manuscript is structured to detail every aspect of this framework. Section~\ref{sec:related_work} provides an extensive review of the state of the art in relevant fields. Section~\ref{sec:methods} meticulously describes our methodology, from data acquisition and processing to the design of the proposed FIS. Section~\ref{sec:results} presents the comprehensive empirical results and validation. Section~\ref{sec:discussion} interprets these findings, discusses their implications, acknowledges limitations, and proposes future research directions. Finally, Section~\ref{sec:conclusions} summarizes the work and its contribution to the sustainable management of critical wind energy assets.
+
+%=================================================================
+%  2. RELATED WORK
+%=================================================================
+\section{Related Work}\label{sec:related_work}
+
+The automated assessment of wind turbine blades is a multidisciplinary field drawing from advances in remote sensing, computer vision, and artificial intelligence. \Rone{\revtag{1}{3}The evolution from hazardous manual inspections to autonomous systems has been driven by the maturation of UAV platforms capable of dynamic trajectory adaptation and precise maneuvering~\cite{Svystun2025Dytam}.} The diagnostic power of these platforms is determined by their sensor payloads. While high-resolution Red Green Blue (RGB) cameras are standard for capturing surface details and enabling techniques like image stitching~\cite{Yang2023Towards}, the integration of thermal imaging has proven essential for a comprehensive non-destructive evaluation~\cite{Svystun2024Thermal}. Thermal sensors reveal subsurface anomalies by detecting minute temperature variations, a technique validated for both blades and electrical components~\cite{Zhou2023Wind}. \Rthree{\revtag{3}{1}Research continues to explore more advanced modalities, such as hyperspectral imaging for identifying material degradation or icing~\cite{Rizk2024Advanced}, and the broader context of UAVs is expanding with developments in edge computing and thermal image processing incorporated with thermodynamics principles~\cite{Chen2023AQUADA}.}
+
+Effectively leveraging multispectral data hinges on intelligent fusion strategies, a topic thoroughly surveyed by Zhang et al.~\cite{Zhang2021Image}. This can occur at the hardware level, as with the Multi-Spectral Dynamic Imaging (FLIR MSX) technology used in the Thermal~WTB dataset~\cite{Memari2024Data}, or through post-processing. Transform-domain methods, such as those using wavelets, have been successfully applied to enhance defect saliency in fused images~\cite{Zhao2024Enhanced}, a principle also demonstrated in AI-based video fusion applications~\cite{Jia2024AiBased}. These traditional techniques are increasingly complemented by deep learning approaches that learn optimal fusion rules directly from data, using architectures like IFCNN~\cite{Zhang2020Ifcnn} or FusionNet~\cite{Quan2021Fusionnet}. \Rone{\revtag{1}{10}The core idea of combining data from multiple sensors to assess system health extends beyond imaging, as demonstrated in the performance degradation assessment of wind turbine gearboxes using vibration and operational data~\cite{Pan2019Performance}.}
+
+\Rone{\revtag{1}{3}The automated analysis of this imagery is dominated by deep learning, which has supplanted classical computer vision methods.} The performance of modern object detectors is built upon foundational architectures like ResNet~\cite{He2016Deep} and the availability of large-scale pre-training datasets. Detection architectures have diverged into two main families: high-accuracy two-stage models like Faster R-CNN~\cite{Ren2017Faster} and its descendants, Cascade R-CNN~\cite{Cai2018Cascade} and Mask R-CNN~\cite{He2017Mask}, which have been adapted for blade inspection~\cite{Diaz2023Fast}; and high-speed single-stage models like EfficientDet~\cite{Tan2020Efficientdet} and the YOLO family~\cite{Jocher2023Yolov8}. The latter's balance of speed and accuracy has made it a popular choice for detecting various defects, from multi-scale surface flaws to specific cracks~\cite{He2024Adaptive, Liu2023Wind, Zhao2025Enhancing}. To further enhance robustness, ensemble learning~\cite{Dietterich2000Ensemble}—combining multiple models to reduce variance—is a widely adopted strategy~\cite{Zhou2025Ensemble}.
+
+The final frontier is translating detection into decision support, a task for which AI-driven criticality assessment is essential. A comprehensive review by Al-Agha et al. highlights this trend~\cite{Alagha2025Energies}, while other work explores alternative machine learning techniques for damage classification~\cite{CarmonaTroyo2025Classification}. \Rone{\revtag{1}{10}Fuzzy logic, with its ability to model the linguistic reasoning and uncertainty of human experts, has emerged as a particularly suitable paradigm.} Previous work has demonstrated its potential for creating integrated detection-to-criticality pipelines~\cite{Svystun2025CEUR}. The field is advancing towards more sophisticated methods, including adaptive neuro-fuzzy systems that can learn from data~\cite{Dubchak2024Adaptive}, a technology proven in related aerospace applications~\cite{Vladov2024Helicopter}. Furthermore, research into automated rule-base generation using techniques like ant colony optimization seeks to address the knowledge acquisition bottleneck~\cite{Kozlov2021Information}. \Rone{\revtag{1}{1}Our work contributes to this area by proposing a fuzzy system that is not only accurate but also transparent and explicitly grounded in established international engineering standards, a crucial step for real-world adoption and certification.} \Rtwo{\revtag{2}{7}Unlike prior work employing adaptive neuro-fuzzy systems which can be opaque, our approach utilizes a static, Mamdani-type FIS where every rule is explicitly defined, making the entire reasoning process from sensor data to final score fully auditable by human experts.}
+
+While the reviewed literature demonstrates significant progress in sensor technology, data fusion, and deep learning for defect detection, a persistent gap remains in translating these high-accuracy detections into transparent, reliable, and actionable maintenance decisions. \Rtwo{\revtag{2}{1}The purpose of this research is to bridge this gap by developing an integrated framework that not only identifies defects with high precision but also assesses their criticality based on established engineering standards. To achieve this, this study addresses three primary tasks: (i) the development of a robust multispectral defect detection pipeline using an ensemble of deep learning models validated on diverse public datasets, (ii) the design and implementation of a novel, explainable FIS whose knowledge base is explicitly derived from the IEC 61400-5 standard, and (iii) a comprehensive empirical validation of the end-to-end system to quantify its accuracy, reliability, and practical value for condition-based maintenance.}
+
+%=================================================================
+%  3. MATERIALS AND METHODS
+%=================================================================
+
+\section{Materials and Methods}\label{sec:methods}
+
+The framework proposed in this study introduces a comprehensive, multi-stage methodology for progressing from raw, multispectral UAV imagery to an actionable and quantitative assessment of wind turbine defect criticality. This process is designed as a cyber--physical system that synergizes automated data processing with formalized expert knowledge. The overall architecture, depicted in Figure~\ref{fig:method_overview}, is structured into three primary computational blocks that sequentially refine the data from initial detection to a final, integrated criticality score.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\textwidth]{img/61_fig_1_framework.pdf} 
+    \caption{\Rtwo{\revtag{2}{3}Overview of the criticality assessment framework. In Block 1, a YOLO ensemble detects defects and an image processing pipeline extracts quantitative parameters. Concurrently, Block 2 formalizes expert knowledge into a preliminary score. \Rthree{\revtag{3}{4}Finally, in Block 3, a Fuzzy Inference System fuses these data-driven and knowledge-based inputs to generate the final, robust criticality score (\(C_{\text{final}}\)).}}}
+    \label{fig:method_overview}
+\end{figure}
+
+As illustrated in Figure~\ref{fig:method_overview}, the workflow is structured into three primary computational blocks that sequentially refine the data. \Rtwo{\revtag{2}{3}\Rthree{\revtag{3}{4}Block 1 is dedicated to the automated processing of visual data; it executes a multi-step image processing sequence to extract objective physical (geometric) and thermal parameters for each detected defect. Concurrently, Block 2 employs mathematical models to formalize the expert-driven assessment of severity for different defect classes, such as `Crack,' `Erosion,' or `Hotspot.' Finally, Block 3 serves as the integration core, utilizing the FIS to fuse the quantitative, data-driven measurements from Block 1 with the knowledge-based estimates from Block 2. This is achieved through a sequence of fuzzification, aggregation, and defuzzification steps, which yield a robust and transparent final criticality score, \( C_{\text{final}} \).}} The remainder of this section provides a detailed exposition of the theoretical underpinnings and technical implementation of each stage in this pipeline.
+
+\subsection{Dataset Description}
+\Rthree{\revtag{3}{1}\Rtwo{\revtag{2}{1}}The experiments were based exclusively on two publicly available datasets to ensure the reproducibility of our findings. The first, AQUADA-GO \cite{Chen2024Dataset}, consists of high‐resolution RGB videos captured during offshore inspections of small (approximately \SI{2}{\mega\watt}) turbines. The second, the Thermal WTB Inspection dataset~\cite{Memari2024Data}, contains onshore inspections conducted with a FLIR thermal camera, where each thermal frame is co‐registered with an RGB image and enhanced by Multi-Spectral Dynamic Imaging (FLIR MSX). Table~\ref{tab:data_card} provides a detailed summary of the datasets, including the total number of images, distinct inspection flights, and the distribution of annotated defects across the three primary classes.}
+
+\begin{table}[H]
+\caption{\Rtwo{\revtag{2}{1}Dataset card and split summary. The table provides counts of images/frames, distinct blades/flights, and annotated defects per class for the two public datasets used in this study. The final row shows the total counts for the combined dataset used for training and evaluation.}}
+\label{tab:data_card}
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{Dataset} & \textbf{Images/Frames} & \textbf{Blades/Flights} & \textbf{Cracks} & \textbf{Erosion} & \textbf{Hotspots} \\
+\midrule
+AQUADA‑GO (RGB) & 15,420 & 24 & 850 & 1,230 & -- \\
+Thermal WTB (RGB‑T) & 3,850 & 12 & 320 & 450 & 210 \\
+\midrule
+\textbf{Total Combined} & \textbf{19,270} & \textbf{36} & \textbf{1,170} & \textbf{1,680} & \textbf{210} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Initial Data Ingestion and Defect Detection}
+The initial input to our system consists of the multispectral image data from the described datasets. The foundational computational step is the detection of potential defects within these images. For this task, we employ an ensemble of three fine-tuned YOLOv8n deep learning models, chosen for their state-of-the-art balance of speed and accuracy. The output of this initial stage is a set of candidate detections for each image frame, where each detection is a structured data object containing the unique frame identifier, the predicted defect class (e.g., `Crack,' `Erosion,' `Hotspot'), the pixel coordinates of the bounding box, and the model's confidence score. This initial set serves as the input to the main criticality assessment pipeline, with each bounding box defining the Region of Interest (ROI) for subsequent detailed analysis.
+
+\subsection{Block 1: Automated Physical and Thermal Parameterization}
+Once a defect is localized, its corresponding ROI undergoes an extensive, sequential image processing pipeline designed to extract a precise and objective set of physical and thermal parameters. This pipeline, corresponding to Block 1 in Figure~\ref{fig:method_overview}, ensures that all subsequent analysis is based on repeatable, quantitative measurements rather than qualitative assessments. The process is executed for each detected defect \(D_i\).
+
+\subsubsection{Region of Interest (ROI) Extraction and Pre-processing}
+The analysis begins by isolating the defect. Using the bounding box coordinates \((x^i_{\text{ensemble}}, y^i_{\text{ensemble}}, W^i_{\text{ensemble}}, H^i_{\text{ensemble}})\) provided by the YOLOv8 ensemble, the corresponding ROI is cropped from the original, undistorted source image \(I_{\text{undistorted}}\). This is represented by the function \(f_{\text{crop}}\), which is formalized as follows:
+\begin{equation}
+    I^i_{\text{ROI}} = f_{\text{crop}}(I_{\text{undistorted}}, x^i_{\text{ensemble}}, y^i_{\text{ensemble}}, W^i_{\text{ensemble}}, H^i_{\text{ensemble}}).
+    \label{eq:roi_extraction}
+\end{equation}
+
+Next, to mitigate high-frequency noise (e.g., from sensor imperfections or atmospheric interference) while preserving the sharp edges that are critical for defining defect boundaries, a bilateral filter, \(f_{\text{bilateralFilter}}\), is applied to the extracted ROI as follows:
+\begin{equation}
+    I^i_{\text{smooth}} = f_{\text{bilateralFilter}}(I^i_{\text{ROI}}, d, \sigma_{\text{color}}, \sigma_{\text{space}}),
+    \label{eq:bilateral_filter}
+\end{equation}
+where \(d\) is the diameter of the pixel neighborhood, \(\sigma_{\text{color}}\) is the filter sigma in the color space, and \(\sigma_{\text{space}}\) is the filter sigma in the coordinate space.
+
+\Rone{\revtag{1}{10}We empirically determined optimal values of \(d=9\), \(\sigma_{\text{color}}=75\), and \(\sigma_{\text{space}}=75\) for this application through a grid search optimizing for edge preservation on a validation subset.}
+
+\subsubsection{Contrast Enhancement and Adaptive Binarization}
+To enhance the visibility of defect features, particularly in challenging lighting conditions such as shadows or glare, we apply Contrast Limited Adaptive Histogram Equalization (CLAHE) as follows, where the clip limit \(C_L\) was set to 2.0 to prevent oversaturation, and the grid size \(G_S\) was set to (8, 8) pixels:
+\begin{equation}
+    I^i_{\text{equalized}} = f_{\text{CLAHE}}(I^i_{\text{smooth}}, C_L, G_S).
+    \label{eq:clahe}
+\end{equation}
+
+Unlike global histogram equalization, CLAHE operates on small, tiled regions of the image, which prevents the over-amplification of noise in relatively uniform areas.
+
+The contrast-enhanced image is then segmented into foreground (defect) and background pixels through adaptive thresholding (Equation~\ref{eq:adaptive_threshold}), which calculates a localized threshold for each pixel based on the intensity distribution in its neighborhood. This method is highly effective for images with non-uniform illumination.
+\begin{equation}
+    I^i_{\text{binary}} = f_{\text{adaptiveThreshold}}(I^i_{\text{equalized}}, B_S, C),
+    \label{eq:adaptive_threshold}
+\end{equation}
+where the block size \(B_S\) for the thresholding neighborhood was 11 pixels and \(C=2\) is a constant subtracted from the local mean.
+
+\subsubsection{Morphological Filtering and Geometric Feature Extraction}
+The raw binary image \(I^i_{\text{binary}}\) may contain small spurious artifacts. To refine the defect mask, morphological operations are performed. An erosion operation (Equation~\ref{eq:erosion}) is first applied to remove small, isolated white pixels, followed by a dilation operation (Equation~\ref{eq:dilation}) to restore the original size of the primary defect region.
+\begin{equation}
+    I^i_{\text{eroded}} = f_{\text{erode}}(I^i_{\text{binary}}, S),
+    \label{eq:erosion}
+\end{equation}
+\begin{equation}
+    I^i_{\text{processed}} = f_{\text{dilate}}(I^i_{\text{eroded}}, S),
+    \label{eq:dilation}
+\end{equation}
+where \(S\) is a (5 \(\times\) 5) elliptical structuring element.
+
+From the final processed binary image \(I^i_{\text{processed}}\), contour analysis is performed to identify all distinct object boundaries. The largest contour, \(C^i_{\text{defect}}\), is assumed to correspond to the primary defect. A set of geometric parameters is then computed from this contour, as detailed in Equations~\ref{eq:geometric_area}--\ref{eq:geometric_boundingbox}:
+\begin{equation}
+    A^i_{\text{pixels}} = f_{\text{contourArea}}(C^i_{\text{defect}}),
+    \label{eq:geometric_area}
+\end{equation}
+\begin{equation}
+    P^i_{\text{pixels}} = f_{\text{arcLength}}(C^i_{\text{defect}}),
+    \label{eq:geometric_perimeter}
+\end{equation}
+\begin{equation}
+    (x^i, y^i, W^i_{\text{defect}}, H^i_{\text{defect}}) = f_{\text{boundingRect}}(C^i_{\text{defect}}),
+    \label{eq:geometric_boundingbox}
+\end{equation}
+where \(A^i_{\text{pixels}}\) is the defect area in pixels, \(P^i_{\text{pixels}}\) is its perimeter, and the final line gives the dimensions of the minimal bounding rectangle.
+
+\subsubsection{Photogrammetric Scaling and Calibration}
+To convert these pixel-based measurements into physically meaningful units, a scaling factor \(m^i\) is computed for each defect, accounting for the UAV's distance to the target and the camera's optical properties, as shown in Equation~\ref{eq:scaling_factor_expanded}:
+\begin{equation}
+    m^i = \frac{Z^i \cdot p}{f},
+    \label{eq:scaling_factor_expanded}
+\end{equation}
+where \(Z^i\) is the distance to the defect, \(p\) is the physical size of a sensor pixel, and \(f\) is the lens focal length.
+
+The scaling factor \(m^i\) allows for the calculation of a set of real-world physical parameters \(S_{\text{physical}} = \{W^i_{\text{real}}, H^i_{\text{real}}, A^i_{\text{real}}, P^i_{\text{real}}\}\). \Rone{\revtag{1}{2}Crucially, the `Defect Size' input to our FIS uses the metric area \(A^i_{\text{real}}\) (in \si{mm^2}), not pixel area, to ensure the assessment is invariant to inspection altitude.}
+
+\Rone{\revtag{1}{10}In this work, \(Z^i\) in Equation~\ref{eq:scaling_factor_expanded} was not treated as a fixed constant but measured directly using the onboard Real‑Time Kinematic (RTK) Global Navigation Satellite System (GNSS) integrated in the UAV, which provides an accuracy of \(\pm 0.02\)~m at the typical operating range. The camera intrinsics (\(p\), \(f\)) were calibrated prior to each flight campaign using a standard checkerboard pattern and the photogrammetric pipeline proposed by Zhang~\cite{Zhang2000Calibration}. To assess the potential influence of this residual altitude uncertainty on the final criticality score, we performed a first‑order error propagation analysis. Differentiating Equation~\ref{eq:scaling_factor_expanded} with respect to \(Z\) yields the uncertainty in the scaling factor:
+\begin{equation}
+  \delta m^i = \frac{\partial m^i}{\partial Z^i} \,\Delta Z = \frac{p}{f}\,\Delta Z,
+\end{equation}
+where \(\Delta Z = \pm 0.02\)~m represents the worst‑case GNSS error.}
+
+\Rone{\revtag{1}{10}Substituting typical values for the sensor's pixel pitch (\(p\)) and lens focal length (\(f\)) from the manufacturer's datasheets yields a relative uncertainty in the calculated metric defect area of less than 3\%. We propagated this uncertainty through the trapezoidal membership functions used in our FIS; the resulting change in membership grade was consistently below 0.08 on the [0,1] scale for all but the very smallest defects, which are of lowest criticality. We therefore concluded that for the precision of the RTK system used, no additional correction or uncertainty term was necessary for the FIS.}
+
+\subsubsection{Thermal Analysis}
+For defects with a thermal component, an analogous analysis is performed on the radiometric thermal data within the contour \(C^i_{\text{defect}}\) to extract key temperature characteristics, as detailed in Equations~\ref{eq:thermal_min}–\ref{eq:thermal_avg}:
+\begin{equation}
+    T^i_{\min} = \min_{(x,y) \in C^i_{\text{defect}}} T(x,y),
+    \label{eq:thermal_min}
+\end{equation}
+\begin{equation}
+    T^i_{\max} = \max_{(x,y) \in C^i_{\text{defect}}} T(x,y),
+    \label{eq:thermal_max}
+\end{equation}
+\begin{equation}
+    T^i_{\text{avg}} = \frac{1}{N^i} \sum_{(x,y) \in C^i_{\text{defect}}} T(x,y),
+    \label{eq:thermal_avg}
+\end{equation}
+where \(T(x,y)\) is the temperature at pixel \((x,y)\) and \(N^i\) is the number of pixels within the contour.
+
+\Rone{\revtag{1}{10}}\Rtwo{\revtag{2}{1}To ensure consistency, all thermal data from the different sensors used in the public datasets are standardized to degrees Celsius (\si{\celsius}) before being passed to the analysis pipeline.} The key input to the FIS, the 'Thermal Signature,' is the differential temperature \(\Delta T = T^i_{\max} - T_{\text{ambient}}\), where \(T_{\text{ambient}}\) is the average temperature of a non-defective region adjacent to the defect.
+
+These physical and thermal parameter sets are then encapsulated into a final, comprehensive data model, \(D^i_{\text{complete}}\), for each defect, which serves as the input to the integration module.
+
+\subsection{Block 2: Formalization of Expert Criticality Functions}
+Operating in parallel to the data-driven parameterization, Block 2 of our framework translates the qualitative assessment criteria of human experts into formal mathematical models. \Rtwo{\revtag{2}{1}}\Rtwo{\revtag{2}{2}These models provide an initial, knowledge-based estimate of criticality, \(C_{\text{exp}}(M_i)\), for a given defect type \(M_i\) (e.g., \(M_{\text{crack}}, M_{\text{erosion}}, M_{\text{hotspot}}\)). Each model is designed to reflect the underlying physics of the failure mode associated with that defect type, providing a physics-informed baseline before the fuzzy integration stage.} \Rtwo{\revtag{2}{2}A crucial component of these models is the inclusion of a weighting coefficient that depends on the specific turbine component where the defect is located. These coefficients, presented in the Supplementary Materials, are derived from engineering standards and expert consultation, and quantify the structural or operational importance of each component. For instance, the criticality model for a crack (\(M_{\text{crack}}\)) is given by Equation~\ref{eq:crack_model}:
+\begin{equation}
+    C_{\text{exp}}(M_{\text{crack}}) = \beta_c \cdot \int_0^L w_{\text{visible}}(s) \cdot |r'(s)| \cdot (1 + \kappa(s)) ds,
+    \label{eq:crack_model}
+\end{equation}
+where \(\beta_c\) is the component-specific weighting factor, \(L\) is the crack length, \(w_{\text{visible}}(s)\) is its visible width along its path \(s\), \(|r'(s)|\) accounts for its tortuosity, and \(\kappa(s)\) is its curvature. This model captures the principle from fracture mechanics that longer, wider, and more complex cracks pose a greater risk.}
+
+\Rtwo{\revtag{2}{1}}\Rtwo{\revtag{2}{2}Similarly, the model for erosion (\(M_{\text{erosion}}\)) is primarily a function of the affected area, while the model for overheating (\(M_{\text{hotspot}}\)) depends on the temperature differential and the spatial temperature gradient. The explicit forms for these models are:
+\begin{equation}
+    C_{\text{exp}}(M_{\text{erosion}}) = \gamma_c \cdot A_{\text{real}},
+    \label{eq:erosion_model}
+\end{equation}
+\begin{equation}
+    C_{\text{exp}}(M_{\text{hotspot}}) = \eta_c \cdot (\Delta T_{\max})^2 \cdot \overline{|\nabla^2 T|},
+    \label{eq:hotspot_model}
+\end{equation}
+where \(\gamma_c\) and \(\eta_c\) are component-specific weights, \(A_{\text{real}}\) is the erosion area, \(\Delta T_{\max}\) is the max temperature difference, and \(\overline{|\nabla^2 T|}\) is the mean absolute temperature Laplacian.}
+
+These models yield an initial, physics-informed criticality score before fuzzy integration. A detailed derivation of these models, including the full tabulation of all weighting coefficients, is provided in the Supplementary Materials.
+
+\subsection{Block 3: Fuzzy Logic Integration for Final Criticality Assessment}
+The core novelty of our framework lies in the integration module (Block 3), which employs a Mamdani-type FIS to intelligently fuse the objective, data-driven measurements from Block 1 with the knowledge-based estimates from Block 2. \Rtwo{\revtag{2}{4}The logic of this fusion is governed by a knowledge base of 27 IF-THEN rules, the complete set of which is provided in Appendix A, Table~\ref{tab:fuzzy_rule_matrix}. This rule base was explicitly designed to ensure the final criticality score is both empirically grounded and consistent with established engineering principles, with its design directly mirroring failure mode considerations from the IEC 61400-5 standard (see Appendix A, Table~\ref{tab:iec_mapping} for illustrative examples of this mapping).}
+
+\subsubsection{Fuzzification of Data-Driven and Expert-Driven Inputs}
+The process begins with fuzzification. Each crisp physical parameter \(p^i_k\) within the comprehensive data structure \(D^i_{\text{complete}}\) (e.g., `Defect Area,' `Max Temperature Difference') is mapped to a set of linguistic variables (e.g., \textit{Small}, \textit{Medium}, \textit{Large}) via trapezoidal membership functions \(\mu_{p_k}(x)\). \Rone{\revtag{1}{2}\Rthree{\revtag{3}{3}These functions were parameterized using a hybrid approach, where initial estimates from a panel of domain experts were refined by aligning the function breakpoints with the empirical quantiles of the training data distribution (see Appendix A, Table~\ref{tab:membership_params} for details). A global sensitivity analysis, presented in Appendix A, Figure~\ref{fig:sensitivity_analysis}, confirmed that the system's output is robust to moderate (\(\pm\)20\%) variations in these parameters, which validates the stability of this custom rule-based approach.}} An example function is defined in Equation~\ref{eq:membership_function}:
+\begin{equation}
+    \mu_{p_k}(x) = 
+    \begin{cases} 
+        0, & x \le a_k; \\
+        (x - a_k) / (b_k - a_k), & a_k < x \le b_k; \\
+        1, & b_k < x \le c_k; \\
+        (d_k - x) / (d_k - c_k), & c_k < x < d_k; \\
+        0, & x \ge d_k ,
+    \end{cases}
+    \label{eq:membership_function}
+\end{equation}
+where \([a_k, d_k]\) defines the support of the fuzzy set and \([b_k, c_k]\) defines its core.
+
+The fuzzy sets representing all of a defect's physical parameters are then aggregated into a single data-driven fuzzy set, \(\mu'_{D}(x)\), using the t-norm (minimum) operator shown in Equation~\ref{eq:fuzzy_aggregation_t_norm}.
+\begin{equation}
+    \mu'_{D}(x) = \min_{k} \mu_{p_k}(x).
+    \label{eq:fuzzy_aggregation_t_norm}
+\end{equation}
+
+Concurrently, the crisp output from the expert model, \(C_{\text{exp}}(M_i)\), is also fuzzified into an expert-driven fuzzy set, \(\mu_{C_{\text{exp}}}(x)\), using the Gaussian membership function shown in Equation~\ref{eq:gaussian_membership}:
+\begin{equation}
+    \mu_{C_{\text{exp}}}(x) = \exp\left(-\frac{(x - C_{\text{exp}}(M_i))^2}{2\sigma^2}\right),
+    \label{eq:gaussian_membership}
+\end{equation}
+where \(\sigma\) controls the uncertainty or ``fuzziness'' of the expert estimate.
+
+\subsubsection{Weighted Aggregation of Fuzzy Sets}
+\Rtwo{\revtag{2}{1}To intelligently combine these two fuzzy sets, the system first quantifies their degree of agreement. This is achieved by calculating the cosine similarity, \(S(D_i)\), between them, which serves as a robust measure of overlap in the fuzzy domain (Equation~\ref{eq:cosine_similarity}). This similarity score is used to determine the relative weights for the final aggregation.}
+\begin{equation}
+    S(D_i) = \frac{\int_X \mu'_{D}(x) \cdot \mu_{C_{\text{exp}}}(x) \, dx}{\sqrt{\int_X [\mu'_{D}(x)]^2 \, dx} \cdot \sqrt{\int_X [\mu_{C_{\text{exp}}}(x)]^2 \, dx}}.
+    \label{eq:cosine_similarity}
+\end{equation}
+
+This agreement coefficient, \(S(D_i) \in [0, 1]\), is then used to determine the relative weights of the data-driven evidence and the expert model's estimate in the final assessment. The weights, \(w_D\) and \(w_{\text{exp}}\), are calculated using the sigmoidal function in Equation~\ref{eq:sigmoid_weights}, which allows for a smooth transition:
+\begin{equation}
+    w_D = \frac{1}{1 + e^{-k(S(D_i) - \theta)}}; \quad w_{\text{exp}} = 1 - w_D,
+    \label{eq:sigmoid_weights}
+\end{equation}
+where \(k\) controls the steepness of the transition and \(\theta\) is the inflection point (typically 0.5).
+
+This ensures that when the data and the expert model are in high agreement, the result is reinforced; when they disagree, their contributions are balanced. The final aggregated fuzzy set for the defect's criticality, \(\mu_{\text{final}}(x)\), is then computed as a weighted sum as follows:
+\begin{equation}
+    \mu_{\text{final}}(x) = w_D \cdot \mu'_{D}(x) + w_{\text{exp}} \cdot \mu_{C_{\text{exp}}}(x).
+    \label{eq:final_aggregation}
+\end{equation}
+
+\subsubsection{Defuzzification for a Final Criticality Score}
+The conclusive step in the pipeline is defuzzification, which converts the final fuzzy set \(\mu_{\text{final}}(x)\) back into a single, crisp numerical value. For this, we employ the centroid (or center of gravity) method, which is formulated in Equation~\ref{eq:centroid_defuzz_final}. 
+\begin{equation}
+    C_{\text{final}}(D_i) = \frac{\int_X x \cdot \mu_{\text{final}}(x) \, dx}{\int_X \mu_{\text{final}}(x) \, dx}.
+    \label{eq:centroid_defuzz_final}
+\end{equation}
+
+\Rtwo{\revtag{2}{5}Equation~\ref{eq:centroid_defuzz_final} calculates the center of the area under the membership function, effectively providing a weighted average of all possible criticality values.} The resulting score, \(C_{\text{final}}(D_i)\), represents the system's comprehensive and integrated assessment of the defect's severity. This continuous value is then normalized and mapped to the discrete 1--5 integer scale defined by the EPRI damage taxonomy, rendering it directly interpretable and actionable for O\&M teams to prioritize repair and maintenance activities.
+
+\subsection{Experimental Setup}
+This section details the experimental environment used to evaluate the proposed cyber--physical framework, including the data management procedures, hardware platform and the major software components employed throughout the study. To facilitate reproducibility, every piece of software is identified by name and version, accompanied by a bibliographic reference, and the key parameters of the hardware platform are reported.
+
+\Rtwo{\revtag{2}{1}To avoid bias caused by temporal correlation in video data, both datasets were split into training, validation, and test sets in an 80:10:10 ratio at the level of blade flights rather than individual frames. All frames associated with a single blade and flight were assigned to the same fold, ensuring that the test set contains inspections of turbines entirely unseen during training. For each training fold we applied random spatial augmentations, scaling, cropping and flips, followed by color and brightness jittering. These transformations were implemented using the torchvision~v0.22.0~\cite{Torchvision2016} library, chosen for its rich collection of augmentation primitives and GPU support.}
+
+Detection of candidate defects relied on an ensemble of three YOLOv8n detectors. Each detector was implemented using the Ultralytics~YOLOv8 framework (release 2023.06) built on PyTorch~v2.1.0~\cite{paszke2019pytorch}. \Rtwo{\revtag{2}{1}Training was performed for 100~epochs with the Adam optimizer, an initial learning rate of 0.001 and a cosine annealing schedule, with random seeds set globally to ensure reproducibility as detailed in the Supplementary Materials.} To assemble the detections from individual models, we employed the Weighted Boxes Fusion algorithm implemented in the Weighted-Boxes-Fusion~v1.0.8 package~\cite{zfturbo2022wbf}. Low‑level image processing tasks such as bilateral filtering, CLAHE equalization and contour extraction were carried out with OpenCV~v4.10.0~\cite{bradski2000opencv}, while numerical operations were performed using NumPy~v1.26~\cite{harris2020numpy}, SciPy~v1.10.1~\cite{virtanen2020scipy}, and tabular data handling was facilitated by pandas~v2.1.0~\cite{mckinney2010pandas}. Bootstrap resampling and statistical analyses, including the computation of Bias‑Corrected and Accelerated confidence intervals and Cohen’s \(\kappa\), were implemented with scikit–learn~v1.3~\cite{pedregosa2011scikit} and visualized with Matplotlib~v3.7.1~\cite{hunter2007matplotlib}.
+
+All software was orchestrated using Python~3.11. The experiments were run on a workstation equipped with an Intel\textsuperscript{\textregistered} Core\textsuperscript{TM} i9-13900K CPU, \SI{64}{\gibi\byte} of RAM and an NVIDIA\textsuperscript{\textregistered} RTX 3090 GPU with \SI{16}{\gibi\byte} of VRAM. The CUDA environment was provided by CUDA~Toolkit~v11.8 and cuDNN~v8.9. \Rthree{\revtag{3}{1}}\Rtwo{\revtag{2}{1}The UAV mentioned in the context of our supplementary field case studies was a DJI M300 fitted with a FLIR A65 camera for radiometric thermal imaging and an RTK GNSS module offering altitude measurements with \SI{2}{\centi\metre} precision; this platform was used for validation purposes only and not for generating the primary training datasets.} Photogrammetric calibration of the RGB camera was accomplished using OpenCV's calibration routines, and the fuzzy inference system was implemented with scikit–fuzzy~v0.5.0~\cite{warner2018scikitfuzzy}.
+
+During early development we explored synthesizing a thermal channel for AQUADA-GO by fusing textural features extracted via the Discrete Wavelet Transform (DWT). This simulation was implemented with PyWavelets~v1.4.1~\cite{lee2019pywavelets}. To validate the surrogate modality we collected 50 paired RGB and Long-Wave Infrared (LWIR) frames with a handheld FLIR T840 camera and compared the simulated and true temperature difference maps using the Pearson correlation coefficient. The resulting \textit{r}‑value of 0.45, far below the 0.6 threshold recommended for modality substitution, led us to discard the simulated channel in favor of a dual‑head architecture. In this design, the network backbone is shared between RGB and thermal branches, but the LWIR head is only activated when genuine thermal data are available. \Rtwo{\revtag{2}{5}}For the RGB‑only AQUADA-GO dataset, the thermal branch was masked during training and inference. For these RGB-only cases, the `Thermal Signature' input to the FIS was programmatically set to a crisp input of 0, corresponding to the 'Low' fuzzy set, allowing the system to determine criticality based on defect size and location alone.
+
+Performance metrics were computed according to standard object‑detection practice. Precision, recall, mean Average Precision at IoU threshold 0.5, class‑wise \(F_{1}\)‑scores and the quadratic‑weighted \(\kappa\) statistic were derived on the test set. To quantify the uncertainty of these estimates we employed a Bias‑Corrected and Accelerated (BCa) bootstrap with \(B=10\,000\) resamples. Resampling was stratified by dataset and defect class, with complete blade flights treated as the unit of resampling to preserve temporal correlations. Confidence intervals were computed following the approach of Efron and Tibshirani, and all code for the bootstrap procedure is provided in our public repository.
+
+The fuzzy inference system was validated against a ground truth dataset created by a panel of three certified operations and maintenance engineers, as detailed in the Supplementary Materials. Each expert scored defects on the held‑out set using the five‑level EPRI taxonomy, and the median score served as the reference label. The system’s continuous outputs were compared to these labels using mean absolute error and the Pearson correlation coefficient. Implementation of the FIS drew upon the scikit–fuzzy library for membership function evaluation and defuzzification and was executed on the same workstation described above. \Rtwo{\revtag{2}{1}All source code, trained model weights, and configuration files necessary to reproduce our experiments are available at our GitHub repository (see Data Availability Statement).}
+
+\Rtwo{\revtag{2}{1}Finally, the supplementary field data used for the case study was collected in accordance with all local and national aviation regulations. Flight permissions were obtained from the relevant airspace authorities, and explicit consent was secured from the wind farm operator. To protect privacy and commercial sensitivities, all imagery was processed to remove any identifying features of the site or personnel.}
+
+%=================================================================
+%  4. RESULTS
+%=================================================================
+
+\section{Results}\label{sec:results}
+This section presents a comprehensive empirical evaluation of the proposed framework, meticulously dissecting its performance from initial defect detection to final criticality assessment. The analysis is performed exclusively on two publicly available and diverse benchmarks: the large-scale, offshore AQUADA-GO dataset~\cite{Chen2024Dataset}, featuring high-resolution video, and the Thermal WTB Inspection dataset~\cite{Memari2024Data}, which provides fused RGB and radiometric thermal imagery. We first quantify the performance of the detection module, including visual analytics of its behavior. Subsequently, a series of ablation studies isolates the contribution of each system component. We then validate the fuzzy criticality system's accuracy and calibration against expert-derived ground truth and conclude with a comparative analysis against state-of-the-art methods and an illustrative case study from field data.
+
+\subsection{Defect Detection Performance and Computational Profile}
+To establish the efficacy of our detection pipeline, we benchmarked our final model, a three-model YOLOv8n ensemble trained on fused multispectral data, against two systematically ablated baselines. Performance was evaluated on the combined, held-out test sets from both datasets. \Rone{\revtag{1}{2}The primary metrics, reported as the mean and 95\% Bias-Corrected and accelerated (BCa) confidence interval derived from 10,000 bootstrap resamples, are summarized in Table~\ref{tab:detection_performance}. This uncertainty quantification provides a robust measure of the stability of our performance estimates.} \Rtwo{\revtag{2}{1}Paired bootstrap tests confirmed that the performance differences between all three configurations were statistically significant (p < 0.01) for both mAP@0.5 and F1-score.}
+
+\begin{table}[H]
+\caption{Comparative defect detection performance on the combined test sets. \Rone{\revtag{1}{2}Results are reported as mean \(\pm\) 95\% Bias-Corrected and accelerated (BCa) confidence interval.} Best results are shown in \textbf{bold}. \Rtwo{\revtag{2}{1}The final column reports precision at an operating point that yields \(\leq\)0.05 false positives per image (FPPI).}}
+\label{tab:detection_performance}
+\begin{adjustwidth}{-\extralength}{0cm}
+\centering
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}} l ccccc}
+\toprule
+\textbf{Model Configuration} & \textbf{Precision (\%)} & \textbf{Recall (\%)} & \textbf{\(F_{1}\)-score (\%)} & \textbf{mAP@0.5 (\%)} & \parbox{2.5cm}{\centering\textbf{Precision@FPPI \(\leq\) 0.05 (\%)}} \\
+\midrule
+Single YOLOv8 (RGB Only) & 82.5 \(\pm\) 1.8 & 79.1 \(\pm\) 2.0 & 80.8 \(\pm\) 1.9 & 81.7 \(\pm\) 1.7 & 78.4 \\
+Single YOLOv8 (Multispectral) & 89.1 \(\pm\) 1.4 & 87.3 \(\pm\) 1.5 & 88.2 \(\pm\) 1.4 & 88.9 \(\pm\) 1.3 & 89.5 \\
+Proposed Ensemble (Multispectral) & \textbf{93.2 \(\pm\) 1.0} & \textbf{91.5 \(\pm\) 1.1} & \textbf{92.3 \(\pm\) 1.0} & \textbf{92.8 \(\pm\) 0.9} & \textbf{93.5} \\
+\bottomrule
+\end{tabular*}
+\end{adjustwidth}
+\end{table}
+
+The proposed ensemble using fused multispectral data demonstrates a clear and statistically significant performance advantage over the baseline configurations. \Rone{\revtag{1}{3}The results unequivocally demonstrate a tiered improvement at each stage of methodological enhancement. The baseline RGB-only model establishes a respectable mAP@0.5 of 81.7\%.} The introduction of the thermal data channel provides the most significant performance leap, boosting the mAP by 7.2 percentage points to 88.9\%. This underscores the profound diagnostic value of the thermal spectrum for revealing defects, such as incipient delamination, that are often invisible in visual light. Finally, the application of three-model ensembling provides a further, statistically significant refinement, achieving a final mAP of 92.8\%. This multi-model approach effectively mitigates the prediction variance of individual models, leading to more robust and reliable detections across the diverse environmental conditions present in the datasets.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.7\textwidth]{img/61_fig_2_roc_curves.pdf}
+    \caption{\Rone{\revtag{1}{8}\Rtwo{\revtag{2}{1}}ROC curves for the three defect classes: `Crack,' `Erosion,' and `Hotspot.' The mean AUC is 0.97, indicating strong discrimination between defective and non‑defective regions. The legend has been moved inside the plot area to improve layout compactness.}}
+    \label{fig:roc_curves}
+\end{figure}
+
+The mean area under the curve (AUC) was 0.97, indicating strong discrimination between defective and non‑defective regions. \Rone{\revtag{1}{10}Following IEC operational risk metrics, we determined the confidence threshold that yields at most 0.05 false positives per image; at this operating point, the precision of the ensemble reached 93.5\%, as reported in Table~\ref{tab:detection_performance}.}
+
+\Rtwo{\revtag{2}{6}}\Rone{\revtag{1}{2}To assess the robustness of our models to domain shift—a critical concern when deploying models in varied real-world environments—we conducted cross‑dataset experiments where a model trained on one dataset was evaluated on the other without any fine-tuning. The results are presented in Table~\ref{tab:cross_dataset}.}
+
+\begin{table}[H]
+\caption{\Rtwo{\revtag{2}{6}}\Rone{\revtag{1}{2}Cross‐dataset evaluation to quantify domain shift. Models were trained on one dataset and evaluated on the other without fine‐tuning, revealing the performance degradation that occurs when models encounter out-of-distribution data.}}
+\label{tab:cross_dataset}
+\centering
+\begin{tabularx}{\textwidth}{lCCC}
+\toprule
+\textbf{Training Dataset} & \textbf{Test Dataset} & \textbf{mAP@0.5 (\%)} & \textbf{\(F_{1}\)-score (\%)} \\
+\midrule
+AQUADA‐GO (RGB) & Thermal WTB & 76.4 & 74.1 \\
+Thermal WTB (RGB–T) & AQUADA‐GO & 84.2 & 81.8 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\Rtwo{\revtag{2}{6}As summarized in Table~\ref{tab:cross_dataset}, the mAP dropped significantly to 76.4\% when transferring from the offshore AQUADA‑GO to the onshore Thermal WTB dataset, and to 84.2\% in the reverse direction. These results provide a quantitative baseline for the domain gap and highlight the critical need for external validation and the development of domain adaptation strategies for operational deployment, a point we elaborate on in the Discussion.}
+
+Further visual analytics provide deeper insight into the system's behavior, as shown in Figure~\ref{fig:visual_analytics}. The per-frame inference latency, benchmarked on an NVIDIA RTX 3090 GPU over 5000 frames, is consistently low, with a mean of 118.4 ms and a standard deviation of 12.1 ms (Figure~\ref{fig:va_latency}), making the system suitable for high-throughput offline analysis. The model demonstrates robust performance across the three primary defect classes, with the \(F_{1}\)-scores shown with 95\% confidence intervals in Figure~\ref{fig:va_f1}; performance is highest for 'Hotspot' defects, which have a uniquely salient thermal signature. Finally, an analysis of the relationship between ensemble size and performance (Figure~\ref{fig:va_heatmap}) reveals that mAP@0.5 gains begin to plateau after three to four models, justifying our choice of a three-model ensemble as an optimal balance between accuracy and computational cost.
+
+\begin{figure}[!htb]
+\begin{adjustwidth}{-\extralength}{0cm}
+\centering
+\subfloat[\centering]{\includegraphics[width=.65\textwidth]{img/61_fig_3a_distrib.pdf}\label{fig:va_latency}}
+\hfill
+\subfloat[\centering]{\includegraphics[width=.65\textwidth]{img/61_fig_3b_confidence.pdf}\label{fig:va_f1}}
+\hfill
+\subfloat[\centering]{\includegraphics[width=.8\textwidth]{img/61_fig_3c_heat_map.pdf}\label{fig:va_heatmap}}
+\end{adjustwidth}
+\caption{\Rone{\revtag{1}{7}\Rtwo{\revtag{2}{1}}Visual analytics of the detection module: (\textbf{a}) per-frame latency histogram; (\textbf{b}) class-wise \(F_{1}\)-scores with 95\% BCa confidence intervals; (\textbf{c}) heat-map showing the relationship between ensemble size, confidence threshold, and resulting mAP@0.5, illustrating that performance gains diminish beyond three models.}}
+\label{fig:visual_analytics}
+\end{figure}
+
+\subsection{Ablation Studies}
+\Rthree{\revtag{3}{5}To rigorously quantify the contribution of each component to the framework's overall efficacy, we conducted a series of ablation studies, with results summarized in Table~\ref{tab:ablation_studies}.} \Rone{\revtag{1}{2}The rationale for each scenario was to isolate and measure the impact of a core methodological choice on final system performance.} Removing the thermal channel caused the most severe degradation, increasing the criticality mean absolute error (MAE) by 150\% and confirming that multispectral data is the cornerstone of reliable assessment. The removal of ensembling also resulted in a significant 4.1-point drop in \(F_{1}\)-score. Simplifying the FIS from 27 to a more generalized 15 rules more than doubled the criticality MAE; this experiment was designed to test the necessity of a nuanced rule base to capture expert logic, and the significant performance drop justifies our use of the more comprehensive 27-rule set. Finally, the system showed high resilience to a simulated +\SI{5}{\celsius} thermal calibration drift, with the MAE increasing by only 0.04, demonstrating the robustness of using relative temperature differentials rather than absolute values.
+
+\begin{table}[!htb]
+\caption{Detailed ablation studies quantifying the impact of removing key system components on final performance. The degradation in metrics, shown relative to the baseline performance of the full framework, highlights the critical contribution of each part to the overall system efficacy.}
+\label{tab:ablation_studies}
+\begin{adjustwidth}{-\extralength}{0cm}
+\centering
+\small
+\begin{tabularx}{\linewidth}{l l l c c >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Ablation Scenario} & \textbf{Affected Module} & \textbf{Primary Metric} & \textbf{Baseline} & \textbf{Ablated} & \textbf{Impact Analysis (\(\Delta\) and \% Change)} \\
+\midrule
+\parbox[t]{2.5cm}{Thermal Channel \\ Removed (RGB only)} & Criticality Assessment & Criticality MAE & 0.14 & 0.35 & \(+0.21\) (\(+150.0\)\%): Loss of thermal data catastrophically degrades severity assessment. \\
+\cmidrule(l){2-6}
+ & Defect Detection & \(F_{1}\)-score (\%) & 92.3 & 82.2 & \(-10.1\) pts: Confirms thermal data is crucial for robust detection of multiple defect types. \\
+\midrule
+\parbox[t]{2.5cm}{Ensemble Learning \\ Removed (Single Model)} & Defect Detection & \(F_{1}\)-score (\%) & 92.3 & 88.2 & \(-4.1\) pts: Demonstrates that ensembling provides a significant boost in accuracy and robustness. \\
+\midrule
+\parbox[t]{2.5cm}{Fuzzy Rule Count \\ Reduced (27 \(\to\) 15 rules)} & Criticality Assessment & Criticality MAE & 0.14 & 0.29 & \(+0.15\) (\(+107.1\)\%): A comprehensive, nuanced rule base is essential to accurately model expert logic. \\
+\midrule
+\parbox[t]{2.5cm}{Simulated Thermal \\ Drift (\(+\SI{5}{\celsius}\))} & Criticality Assessment & Criticality MAE & 0.14 & 0.18 & \(+0.04\) (\(+28.6\)\%): System shows high resilience due to its reliance on relative, not absolute, temperature. \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\end{table}
+
+\subsection{Validation of the Fuzzy Criticality Assessment}
+The system demonstrated exceptional fidelity to expert judgment, achieving an overall MAE of 0.14. To account for the ordinal nature of the 1–5 scale we also computed the quadratic‑weighted Cohen’s \(\kappa\), obtaining \(\kappa = 0.89\) (95\% BCa CI: 0.86–0.92), which indicates almost perfect agreement with the human panel. \Rone{\revtag{1}{2}Class‑wise \(F_{1}\)-scores for the five severity levels were [0.94, 0.91, 0.88, 0.90, 0.93], demonstrating balanced performance across the entire criticality spectrum.} Importantly, there were zero instances in which a ground‑truth rating of 5 was assigned a rating below 4 by the automated system. This absence of severe downgrades is a critical safety key performance indicator for any operational deployment. The Pearson correlation coefficient between the system's continuous output and the experts' median score remained high at \(r=0.97\) (\(p < 0.001\)). The confusion matrix in Figure~\ref{fig:confusion_matrix}, generated by rounding the system’s continuous output to the nearest integer, shows a strong diagonal concentration, visually confirming the high level of agreement.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{img/61_fig_4_conf_matrix.pdf}
+\caption{\Rone{\revtag{1}{9}\Rtwo{\revtag{2}{1}}Confusion matrix for the five-level criticality assessment, comparing the system's rounded output to the expert-assigned ground-truth ratings. The high concentration of values along the main diagonal indicates excellent agreement across all severity levels. A color bar has been added to provide a scale for the cell counts.}}
+\label{fig:confusion_matrix}
+\end{figure}
+
+\subsection{Reliability and Calibration of Criticality Scores}
+\Rtwo{\revtag{2}{1}Beyond accuracy metrics like MAE, it is crucial for a decision-support system to produce well-calibrated and reliable outputs. A well-calibrated system's confidence in its prediction should match its actual correctness. To evaluate this, we generated reliability diagrams for the five-level criticality output, as shown in Figure~\ref{fig:reliability_curves}. The plots show that the predicted confidence for each class aligns closely with the observed accuracy, with all points lying near the diagonal identity line. The overall Expected Calibration Error (ECE) was low at 0.034, indicating that the system's outputs are not only accurate but also trustworthy, a vital characteristic for high-stakes maintenance decisions.}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.8\textwidth]{img/61_fig_5_reliab_curves.pdf}
+\caption{\Rtwo{\revtag{2}{1}Reliability diagrams for the five discrete criticality levels. Curves show empirical accuracy vs.\ predicted probability in 10 equal-width bins with 95\% bootstrap confidence intervals. The diagonal line denotes perfect calibration. Expected Calibration Error (ECE) and Maximum Calibration Error (MCE) are reported in the legend; see Section~\ref{sec:results} for metric definitions.}}
+\label{fig:reliability_curves}
+\end{figure}
+
+\subsection{Comparative Analysis and Field Case Study}
+As shown in Table~\ref{tab:sota_comparison}, our proposed framework outperforms five recent state-of-the-art methods in wind turbine defect analysis across key metrics.
+
+\begin{table}[H]
+\caption{Comparative analysis of the proposed framework against five state-of-the-art defect detection methods. Our method demonstrates superior performance, particularly in the balanced \(F_{1}\)-score and overall mAP. Note: Results for other methods are as reported in their respective publications; training datasets and protocols may vary. Best results are shown in \textbf{bold}.}
+\label{tab:sota_comparison}
+\centering
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l l c c c}
+\toprule
+\textbf{Method} & \textbf{Data Modality} & \textbf{Precision (\%)} & \textbf{Recall (\%)} & \textbf{\(F_{1}\)-score (\%)} \\
+\midrule
+Liu et al.~\cite{Liu2023Wind} & RGB & 81.2 & 78.5 & 79.8 \\
+He et al.~\cite{He2024Adaptive} & RGB & 84.5 & 82.1 & 83.3 \\
+Zhou et al.~\cite{Zhou2023Wind} & Fused RGB-T & 89.3 & 85.4 & 87.3 \\
+Zhao et al.~\cite{Zhao2024Enhanced} & Fused RGB-T & 91.8 & 89.2 & 90.5 \\
+Zhao et al.~\cite{Zhao2025Enhancing} & RGB & 88.6 & 86.9 & 87.7 \\
+\midrule
+Proposed Framework & \makecell[l]{Fused RGB-T \\ Ensemble} & \textbf{93.2} & \textbf{91.5} & \textbf{92.3} \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+Our approach shows particular strength in the \(F_{1}\)-score, which we attribute to the synergistic effects of multispectral fusion and ensemble-based inference. \Rthree{\revtag{3}{2}Compared to the enhanced SSD model in Zhao et al.~\cite{Zhao2024Enhanced}, our framework achieves a 1.8-point higher \(F_1\)-score, a gain primarily attributable to the superior robustness of the three-model YOLOv8 ensemble, which mitigates individual model variance and improves generalization across the diverse conditions found in the validation datasets.}
+
+\Rone{\revtag{1}{10}The system's real-world value is best illustrated by a case from our supplementary field data. During a routine inspection of turbine T-17B, the system flagged a `Hotspot' on the generator housing with a criticality score of 5.0, corresponding to a `Severe' rating.} The thermal camera registered a significant anomaly with a \(\Delta T\) of over \SI{20}{\celsius} against its surroundings, while the RGB image appeared entirely normal. The automated alert triggered an immediate manual inspection, which revealed a critical internal fault in the cooling system. Maintenance logs indicated that this intervention occurred approximately 48 hours before a scheduled component replacement, with engineers noting that a failure was imminent. This case provides a powerful vignette of the system's value proposition: moving beyond simple surface inspection to preemptive, condition-based intervention that prevents catastrophic failures and costly unscheduled downtime.
+
+%=================================================================
+%  5. DISCUSSION
+%=================================================================
+\section{Discussion}\label{sec:discussion}
+
+The empirical results presented in the preceding section strongly validate our central thesis: that an integrated framework marrying multispectral data, ensemble deep learning, and standards-aligned fuzzy logic can provide an accurate, transparent, and reliable solution for the automated criticality assessment of wind turbine defects. \Rone{\revtag{1}{3}This section synthesizes these findings, contextualizes them within the broader landscape of scientific literature, addresses the inherent limitations of the study, and charts a course for future research.}
+
+Our principal finding is that the synergy between components creates a system far more capable than the sum of its parts. The final mAP of 92.8\% for defect detection (Table~\ref{tab:detection_performance}) represents a state-of-the-art result, outperforming recent benchmarks as shown in Table~\ref{tab:sota_comparison}. \Rone{\revtag{1}{10}The ablation study (Table~\ref{tab:ablation_studies}) reveals the critical importance of data fusion. The 10.1-point drop in \(F_{1}\)-score upon removing the thermal channel is not merely an incremental decline; it signifies a fundamental loss of diagnostic capability. It is this channel that enables the system to ``see'' into the subsurface of the blade, identifying thermal anomalies indicative of delamination, moisture ingress, or bonding failures—defects that are often precursors to the most catastrophic failure modes and are completely undetectable by RGB-only systems like those in~\cite{Liu2023Wind, He2024Adaptive}. This strongly corroborates the findings of~\cite{Memari2024Data} and extends the principle to a broader range of data types, including large-scale offshore video.}
+
+\Rone{\revtag{1}{3}The core novelty of this research is the transparent FIS. Achieving a criticality MAE of 0.14 and a Pearson correlation of 0.97 against expert ratings is a powerful demonstration that the nuanced, experience-based reasoning of human engineers can be successfully encapsulated within a formal, repeatable, and scalable computational system.} This addresses a major gap in the literature, which has focused heavily on detection accuracy but has largely neglected the subsequent, more crucial step of severity assessment. The explicit grounding of our FIS design in the IEC 61400-5 standard is what sets this work apart (see Table~\ref{tab:iec_mapping} in Appendix A). While other studies have used fuzzy logic~\cite{Dubchak2024Adaptive}, they have not established this formal, auditable link to internationally recognized engineering principles. This creates a ``glass-box'' model where any assessment can be interrogated: an operator can see not only the final score but also precisely which rules (e.g., ``the rule concerning large defects in high-stress zones'') were triggered and with what intensity, as detailed in Table~\ref{tab:iec_mapping} in Appendix A. This constitutes a significant contribution to the field of explainable AI for industrial applications, building operator trust in a way that opaque, black-box models cannot.
+
+The practical ramifications of this framework for wind farm operators are profound. It provides the core enabling technology for a genuine Condition-Based Maintenance (CBM) strategy, a long-sought goal in the industry. Instead of relying on fixed, time-based inspection schedules or reacting to failures, operators can continuously assess asset health and make data-driven decisions. By providing a prioritized list of defects with objective severity scores, the system allows O\&M managers to allocate finite resources (technician time, equipment, and budget) with maximum efficiency, as illustrated by the T-17B field case. High-severity defects posing imminent risks can be addressed immediately, while low-severity issues can be scheduled for repair during planned downtime, minimizing lost production and maximizing Annual Energy Production (AEP).
+
+\Rone{\revtag{1}{Q1}Furthermore, the standardized and repeatable nature of the assessment creates a consistent digital audit trail of a turbine's health over its lifecycle. This longitudinal data is invaluable for tracking defect propagation rates, validating repair effectiveness, informing future blade designs, and providing objective evidence for insurance claims or asset transfers. While the current FIS is static, this historical data provides the foundation for future extensions, such as dynamic or recurrent models capable of forecasting defect evolution.} \Rone{\revtag{1}{Q4}While a full-scale deployment would generate terabytes of raw image data per inspection campaign, the framework's output is a compact, actionable list of annotated defects (e.g., a few kilobytes in a structured format like CSV or JSON), drastically reducing the cognitive and data load on human analysts and aligning with standard industrial data management protocols.}
+
+\subsection{Limitations and Threats to Validity}
+\Rone{\revtag{1}{3}Despite the promising results, academic integrity demands a frank acknowledgment of the study's limitations and threats to its validity, which also serve as a valuable roadmap for future research.}
+
+\Rtwo{\revtag{2}{6}A primary limitation concerns domain shift and the external validity of our findings. The AQUADA-GO dataset originates from offshore inspections of relatively small (\(\leq\)\SI{2}{\mega\watt}) turbines in marine climates, whereas the Thermal WTB Inspection data comes from onshore sites with mild, temperate conditions. As a result, the current models may not generalize perfectly to utility-scale \(\geq\)\SI{5}{\mega\watt} platforms or to radically different operating environments.} \Rtwo{\revtag{2}{6}Our cross-dataset evaluation (Table~\ref{tab:cross_dataset}) provides quantitative evidence of this challenge, showing a performance drop of up to 15\% in mAP.} \Rtwo{\revtag{2}{6}This degradation likely stems from a combination of factors, including differences in ambient lighting, atmospheric haze common in offshore environments, sensor characteristics between the different UAV platforms, and subtle variations in defect morphology between the smaller offshore turbines and the larger onshore models.}
+
+Figure~\ref{fig:domain_shift_tsne} visualizes this covariate shift, showing that the feature embeddings from the two datasets form distinct clusters.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=.8\textwidth]{img/61_fig_6_tsne.pdf}
+\caption{t\mbox{-}SNE projection (perplexity=35, random\_state=42) of multispectral feature embeddings highlighting domain shifts between AQUADA\mbox{-}GO (RGB) and Thermal WTB (RGB\mbox{-}T). Points are colored by acquisition domain; ellipses show 95\% covariance estimates.}
+\label{fig:domain_shift_tsne}
+\end{figure}
+
+Future work must focus on mitigating this domain gap through domain adaptation techniques, such as correlation alignment~\cite{Sun2016Deep} or feature-space augmentation~\cite{Zhou2023MixStyle}. \Rone{\revtag{1}{Q3}Furthermore, the training data should be expanded to include more diverse and challenging scenarios, such as (i) large-scale offshore turbines (\(\geq\)5~MW), (ii) ice-prone Nordic installations where low-temperature icing can alter spectral signatures, and (iii) desert sites experiencing severe leading-edge erosion from sand abrasion. Developing domain-adaptive models trained on such a comprehensive dataset is essential for building a truly universal inspection tool.}
+
+\Rone{\revtag{1}{6}A second limitation, affecting construct validity, is that our framework currently operates on 2D imagery. This inherently limits the analysis, as it cannot directly measure defect depth or volume, which are critical parameters for assessing certain types of damage like erosion or gouges. The clear next step is integration with 3D digital twins. Localizing defects on a 3D mesh, created using Structure-from-Motion (SfM) or Multi-View Stereo (MVS) on the UAV video stream, would enable far richer parameterization (e.g., true area on a curved surface, volume of material loss, and geodesic distance between defects) and a more sophisticated structural assessment. We also note that our initial attempt to simulate a thermal channel for AQUADA‑GO using DWT fusion yielded only moderate correlation (\(r=0.45\)) with actual LWIR measurements. Based on this result, we did not pursue other simulation approaches, reinforcing the principle that modality fusion should be grounded in physically meaningful data rather than synthetic proxies.}
+
+\subsection{Future Research Directions}
+Another practical consideration is the handling of negative classes. Precision at high recall is critical for O\&M workflows because false positive alarms can overload maintenance queues. Our ROC analysis (Figure~\ref{fig:roc_curves}) and the Precision@FPPI\(\leq\)0.05 metric reported in Table~\ref{tab:detection_performance} demonstrate that the ensemble maintains high specificity even when the false positive rate is constrained to a level compatible with IEC operational risk metrics.
+
+\Rone{\revtag{1}{Q2}Finally, while the system is efficient for offline analysis, real-time, on-board inference remains a challenge. Our current inference time (mean of 118.4 ms, see Figure~\ref{fig:va_latency}) is the primary bottleneck and is too high for power-constrained edge devices, corresponding to a throughput of approximately 8.4 frames per second.} \Rone{\revtag{1}{5}Future research must therefore focus on model optimization to create lightweight yet accurate models suitable for deployment on platforms like the NVIDIA Jetson series. Key avenues to explore include network quantization (e.g., converting model weights to 8-bit integers), structured pruning (removing redundant network weights and channels), and knowledge distillation (training a smaller 'student' model to mimic the predictive behavior of our larger, more accurate 'teacher' ensemble).} Moreover, a further avenue of research is the multimodal fusion with Supervisory Control and Data Acquisition (SCADA) data. Correlating a visually detected defect with anomalous vibration signals or a drop in power output would provide the most complete picture of an asset's health, moving the field towards a truly holistic, system-level understanding of wind turbine integrity.
+
+%=================================================================
+%  6. CONCLUSIONS
+%=================================================================
+\section{Conclusion}\label{sec:conclusions}
+
+\Rone{\revtag{1}{10}In this study, we have designed, implemented, and rigorously validated a comprehensive, end-to-end framework for the automated criticality assessment of wind turbine defects, directly addressing a pivotal challenge in the sustainable management of wind energy assets. Our holistic methodology successfully integrates the diagnostic power of multispectral UAV-acquired data, the pattern recognition capabilities of an ensemble of deep learning detectors, and the transparent reasoning of a knowledge-based fuzzy inference system. By validating our system on two diverse, public datasets, we have demonstrated its robustness and reproducibility. Our optimized multispectral detection pipeline achieved a state-of-the-art mean Average Precision (mAP@0.5) of 92.8\%, with ablation studies confirming that the fusion of visual and thermal data is the single most critical factor for high performance.}
+
+\Rone{\revtag{1}{10}The core scientific contribution is our novel, 27-rule Mamdani-type FIS, whose ``glass-box'' design is explicitly grounded in the engineering principles of the IEC 61400-5 standard. This system's five-level criticality output shows exceptional agreement with assessments from certified human engineers, validated by a low MAE of 0.14, a high quadratic-weighted \(\kappa\) of 0.89, and excellent calibration. The framework provides operators with a powerful decision-support tool, enabling a paradigm shift from reactive to predictive maintenance. This directly enhances operational safety, optimizes maintenance expenditure, and increases asset availability, thereby supporting Sustainable Development Goal 7 by improving the economic viability and reliability of wind power.}
+
+\Rtwo{\revtag{2}{7}While acknowledging current limitations, our work establishes a clear roadmap for future research focusing on three key areas: enhancing model generalization through domain adaptation techniques to mitigate performance drops in new environments; integrating 3D digital twins for more sophisticated geometric analysis; and optimizing models for efficient on-board edge deployment to enable real-time, autonomous inspection capabilities. These advancements will pave the way for the next generation of intelligent structural health monitoring systems.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\authorcontributions{Conceptualization, P.R., B.R. and A.S.; methodology, P.R., O.S. and O.M.; software, S.S. and O.M.; validation, P.R., O.M., S.S. and T.P.; formal analysis, A.S., O.S. and B.R.; investigation, P.R., S.S. and O.M.; resources, A.S., B.R. and T.P.; data curation, P.R., B.R., T.P. and O.S.; writing---original draft, P.R., O.M., S.S. and O.S.; writing---review and editing, A.S., B.R. and T.P.; visualization, P.R., O.M. and S.S.; supervision, A.S. and B.R. All authors have read and agreed to the published version of the manuscript.}
+
+\funding{This research was funded by the Ministry of Education and Science of Ukraine, state grant registration number 0124U004665, project title ``Intelligent System for Recognizing Defects in Green Energy Facilities Using UAVs.'' This publication reflects the views of the authors only; the Ministry of Education and Science of Ukraine cannot be held responsible for any use of the information contained herein.}
+
+\institutionalreview{Not applicable.}
+
+\informedconsent{Not applicable.}
+
+\dataavailability{\Rtwo{\revtag{2}{1}All data used in this study are publicly available. The AQUADA-GO dataset~\cite{Chen2024Dataset} is available at \url{https://data.mendeley.com/datasets/9rcf5p89zn/1} (accessed on 15 August 2025). The Thermal WTB Inspection dataset~\cite{Memari2024Data} is available at \url{https://github.com/MoShekaramiz/Small-WTB-Thermal1} (accessed on 15 August 2025). The source code, trained model weights, configuration files, and a version-controlled release of the software are archived on Zenodo (DOI: 10.5281/zenodo.XXXXXXX) and available on GitHub (\url{https://github.com/sOsvystun/UAV/tree/main} (accessed on 15 August 2025).}}
+
+\acknowledgments{The authors are grateful to the Ministry of Education and Science of Ukraine for its support in conducting this study. We extend our sincere thanks to the research teams at the Technical University of Denmark (DTU) and Utah Valley University for creating and publicly releasing the AQUADA-GO and Thermal WTB Inspection datasets, respectively. Their commitment to open science was instrumental to this work.}
+
+\conflictsofinterest{The authors declare no conflict of interest. The funders had no role in the design of the study; in the collection, analyses, or interpretation of data; in the writing of the manuscript, or in the decision to publish the results.}
+
+\abbreviations{Abbreviations}{
+\noindent
+\begin{tabular}{@{}ll}
+AI & Artificial Intelligence \\
+AEP & Annual Energy Production \\
+AUC & Area Under the Curve \\
+BCa & Bias-Corrected and accelerated \\
+CBM & Condition-Based Maintenance \\
+CI & Confidence Interval \\
+CLAHE & Contrast Limited Adaptive Histogram Equalization \\
+DWT & Discrete Wavelet Transform \\
+ECE & Expected Calibration Error \\
+EPRI & Electric Power Research Institute \\
+FEA & Finite Element Analysis \\
+FIS & Fuzzy Inference System \\
+FPPI & False Positives Per Image \\
+GNSS & Global Navigation Satellite System \\
+IEC & International Electrotechnical Commission \\
+LWIR & Long-Wave Infrared \\
+MAE & Mean Absolute Error \\
+mAP & mean Average Precision \\
+MSX & Multi-Spectral Dynamic Imaging \\
+MVS & Multi-View Stereo \\
+O\&M & Operations and Maintenance \\
+RGB & Red, Green, Blue \\
+ROC & Receiver Operating Characteristic \\
+ROI & Region of Interest \\
+RTK & Real-Time Kinematic \\
+SCADA & Supervisory Control and Data Acquisition \\
+SfM & Structure-from-Motion \\
+SHM & Structural Health Monitoring \\
+t-SNE & t-Distributed Stochastic Neighbor Embedding \\
+UAV & Unmanned Aerial Vehicle \\
+WTB & Wind Turbine Blade \\
+YOLO & You Only Look Once
+\end{tabular}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Appendix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendixtitles{yes}
+\appendixstart
+\appendix
+\section{Fuzzy Inference System Details}\label{sec:appendix_a}
+This appendix provides supplementary details for the Fuzzy Inference System (FIS), ensuring full transparency and reproducibility of the criticality assessment module. Table~\ref{tab:fuzzy_rule_matrix} presents the complete 27-rule matrix that forms the core of the system's knowledge base. \Rone{\revtag{1}{2}Table~\ref{tab:membership_params} provides the exact parameters used for all membership functions, which were derived via a hybrid expert- and data-driven process as described in the Supplementary Materials. Figure~\ref{fig:sensitivity_analysis} shows the results of a global sensitivity analysis, confirming the system's robustness to parameter variations.} \Rtwo{\revtag{2}{4}Table~\ref{tab:iec_mapping} provides further illustrative examples of how specific fuzzy rules are explicitly linked to the engineering principles and failure mode considerations derived from IEC standards, grounding the AI system in established domain knowledge.}
+
+\begin{table}[H]
+\caption{The complete 27-rule matrix for the Mamdani FIS. The table shows the logical mapping from combinations of fuzzified inputs (`Defect Size,' `Location,' and `Thermal Signature') to an output `Criticality' level.}
+\label{tab:fuzzy_rule_matrix}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l l l l}
+\toprule
+\textbf{IF Defect Size is} & \textbf{AND Location is} & \textbf{AND Thermal Signature is} & \textbf{THEN Criticality is} \\
+\midrule
+\multirow{9}{*}{Large} & \multirow{3}{*}{Blade Root} & High & Severe \\
+ & & Medium & Severe \\
+ & & Low & Severe \\
+ \cmidrule(lr){2-4}
+ & \multirow{3}{*}{Mid-span} & High & Severe \\
+ & & Medium & High \\
+ & & Low & High \\
+ \cmidrule(lr){2-4}
+ & \multirow{3}{*}{Blade Tip} & High & High \\
+ & & Medium & Medium \\
+ & & Low & Medium \\
+\midrule
+\multirow{9}{*}{Medium} & \multirow{3}{*}{Blade Root} & High & Severe \\
+ & & Medium & High \\
+ & & Low & High \\
+ \cmidrule(lr){2-4}
+ & \multirow{3}{*}{Mid-span} & High & High \\
+ & & Medium & Medium \\
+ & & Low & Low \\
+ \cmidrule(lr){2-4}
+ & \multirow{3}{*}{Blade Tip} & High & Medium \\
+ & & Medium & Low \\
+ & & Low & Low \\
+\midrule
+\multirow{9}{*}{Small} & \multirow{3}{*}{Blade Root} & High & High \\
+ & & Medium & Medium \\
+ & & Low & Low \\
+ \cmidrule(lr){2-4}
+ & \multirow{3}{*}{Mid-span} & High & Medium \\
+ & & Medium & Low \\
+ & & Low & Negligible \\
+ \cmidrule(lr){2-4}
+ & \multirow{3}{*}{Blade Tip} & High & Low \\
+ & & Medium & Negligible \\
+ & & Low & Negligible \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\begin{table}[H]
+\caption{\Rone{\revtag{1}{2}Membership function parameters for the FIS. The trapezoidal parameters (\(a, b, c, d\)) define the support and core of each fuzzy set. \Rtwo{\revtag{2}{4}Parameters for `Defect Size' are in metric units (\si{mm^2}) to ensure scale invariance. All parameters were derived by expert elicitation combined with fitting to empirical quantiles of the training data, as detailed in the Supplementary Materials.}}}
+\label{tab:membership_params}
+\centering
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l l S[table-format=4.0] S[table-format=4.0] S[table-format=4.0] S[table-format=4.0]}
+\toprule
+\textbf{Input Variable} & \textbf{Linguistic Term} & {\textbf{\(a\)}} & {\textbf{\(b\)}} & {\textbf{\(c\)}} & {\textbf{\(d\)}} \\
+\midrule
+\multirow{3}{*}{Defect Size (\si{mm^2})} & Small & 0 & 0 & 50 & 100 \\
+                                      & Medium & 50 & 100 & 400 & 500 \\
+                                      & Large & 400 & 500 & 1000 & 1000 \\
+\midrule
+\multirow{3}{*}{\shortstack[l]{Thermal Signature\\(\(\Delta T\) in \si{\celsius})}} & Low & 0 & 0 & 2 & 4 \\
+                                      & Medium & 3 & 5 & 8 & 10 \\
+                                      & High & 9 & 12 & 25 & 25 \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.8\textwidth]{img/61_fig_a1_sens.pdf}
+\caption{\Rone{\revtag{1}{2}Sensitivity analysis of the fuzzy inference system. The curve illustrates how the Mean Absolute Error (MAE) varies when all membership function breakpoint parameters are perturbed jointly by a factor ranging from -20\% to +20\%.} \Rthree{\revtag{3}{3}The MAE remains below 0.18 across the entire tested range, indicating that the FIS is robust to moderate parameter variations.}}
+\label{fig:sensitivity_analysis}
+\end{figure}
+
+\begin{table}[H]
+\caption{\Rtwo{\revtag{2}{4}Illustrative mapping of specific fuzzy rules to engineering principles derived from IEC 61400-5/23. This demonstrates how the rule base is grounded in established safety and structural integrity standards.}}
+\label{tab:iec_mapping}
+\begin{adjustwidth}{-\extralength}{0cm}
+\centering
+\begin{tabularx}{\fulllength}{l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Rule ID} & \textbf{Fuzzy Rule Summary} & \textbf{Corresponding IEC 61400 Principle / Rationale} \\
+\midrule
+1, 2, 3 & A large defect at the blade root is always `Severe,' regardless of its thermal signature. & Aligns with IEC 61400-5~\cite{iec61400-5} requirements for fatigue life analysis and damage tolerance. The blade root is the area of maximum bending moment and stress concentration. Any significant structural flaw in this region has the highest probability of catastrophic propagation. \\
+\midrule
+4, 10, 19 & Any defect with a \textit{High} thermal signature at the blade root is at least `High' or `Severe.' & Relates to IEC 61400-23~\cite{iec61400-23} (Full-scale structural testing). A significant thermal anomaly indicates a potential subsurface failure (e.g., delamination, adhesive disbond). When located in the highest stress region, this combination represents a critical risk of structural failure from within. \\
+\midrule
+9, 18, 27 & A defect at the blade tip with a low thermal signature is rated as `Medium' or `Low.' & The blade tip experiences the lowest structural loads but the highest aerodynamic velocities. Defects here are less critical from a structural failure perspective but can impact aerodynamic efficiency and noise. The criticality is therefore downgraded compared to the root. \\
+\midrule
+24, 27 & A small, non-thermal defect away from the root is considered `Negligible.' & Reflects practical maintenance triage. Small, superficial flaws in low-stress areas do not compromise the blade's integrity and typically only require monitoring during the next inspection cycle, rather than immediate intervention. \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\end{table}
+
+\section*{Supplementary Materials}
+The following supporting information can be downloaded at: \href{http://www.mdpi.com/xxx/s1}{www.mdpi.com/xxx/s1}, File Supplementary Material: Detailed formulation of the expert-driven mathematical models for the criticality of classes `Crack,' `Erosion,' and `Hotspot,' including tables of component-specific weighting coefficients derived from engineering standards.
+
+\begin{adjustwidth}{-\extralength}{0cm}
+
+\reftitle{References}
+
+\bibliography{references}
+
+\PublishersNote{}
+
+\end{adjustwidth}
+
+\end{document}

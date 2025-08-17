@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package uav.common.v1;
+
+option go_package = "github.com/uav/shared/proto/common/v1";
+option java_package = "com.uav.common.v1";
+option csharp_namespace = "Uav.Common.V1";
+
+// Common data structures used across all services
+
+message Point3D {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+message BoundingBox {
+  double x = 1;
+  double y = 2;
+  double width = 3;
+  double height = 4;
+}
+
+message Image {
+  bytes data = 1;
+  string format = 2; // e.g., "jpeg", "png"
+  int32 width = 3;
+  int32 height = 4;
+  int64 timestamp_ms = 5;
+  map<string, string> metadata = 6;
+}
+
+message TurbineGeometry {
+  string turbine_id = 1;
+  repeated Point3D blade_points = 2;
+  Point3D tower_base = 3;
+  Point3D nacelle_center = 4;
+  double blade_length = 5;
+  double tower_height = 6;
+  double rotor_diameter = 7;
+}
+
+message WeatherConditions {
+  double wind_speed_ms = 1;
+  double wind_direction_degrees = 2;
+  double temperature_celsius = 3;
+  double humidity_percent = 4;
+  double visibility_km = 5;
+}
+
+// Standard error response
+message ErrorResponse {
+  ErrorCode code = 1;
+  string message = 2;
+  string details = 3;
+  int64 timestamp_ms = 4;
+}
+
+enum ErrorCode {
+  ERROR_CODE_UNSPECIFIED = 0;
+  ERROR_CODE_INVALID_REQUEST = 1;
+  ERROR_CODE_NOT_FOUND = 2;
+  ERROR_CODE_INTERNAL_ERROR = 3;
+  ERROR_CODE_UNAVAILABLE = 4;
+  ERROR_CODE_TIMEOUT = 5;
+  ERROR_CODE_PERMISSION_DENIED = 6;
+}
+
+// Health check messages
+message HealthCheckRequest {
+  string service = 1;
+}
+
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+    SERVICE_UNKNOWN = 3;
+  }
+  ServingStatus status = 1;
+}

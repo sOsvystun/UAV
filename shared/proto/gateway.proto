@@ -1,0 +1,264 @@
+syntax = "proto3";
+
+package uav.gateway.v1;
+
+import "common.proto";
+import "trajectory.proto";
+import "defect_detection.proto";
+import "criticality.proto";
+import "reporting.proto";
+
+option go_package = "github.com/uav/shared/proto/gateway/v1";
+option java_package = "com.uav.gateway.v1";
+option csharp_namespace = "Uav.Gateway.V1";
+
+// Main UAV Gateway Service - orchestrates the entire inspection workflow
+service UAVGatewayService {
+  // Health check
+  rpc HealthCheck(uav.common.v1.HealthCheckRequest) returns (uav.common.v1.HealthCheckResponse);
+  
+  // Mission management
+  rpc StartInspectionMission(StartInspectionMissionRequest) returns (StartInspectionMissionResponse);
+  rpc GetMissionStatus(GetMissionStatusRequest) returns (GetMissionStatusResponse);
+  rpc StopMission(StopMissionRequest) returns (StopMissionResponse);
+  
+  // Workflow orchestration
+  rpc ExecuteInspectionWorkflow(ExecuteInspectionWorkflowRequest) returns (stream WorkflowStatusUpdate);
+}
+
+message StartInspectionMissionRequest {
+  string mission_id = 1;
+  string turbine_id = 2;
+  uav.common.v1.TurbineGeometry turbine_geometry = 3;
+  uav.common.v1.WeatherConditions weather_conditions = 4;
+  MissionParameters mission_parameters = 5;
+  string operator_id = 6;
+}
+
+message StartInspectionMissionResponse {
+  oneof result {
+    MissionStartResult mission_result = 1;
+    uav.common.v1.ErrorResponse error = 2;
+  }
+}
+
+message GetMissionStatusRequest {
+  string mission_id = 1;
+}
+
+message GetMissionStatusResponse {
+  MissionStatus status = 1;
+  MissionProgress progress = 2;
+  repeated WorkflowStageStatus stage_statuses = 3;
+}
+
+message StopMissionRequest {
+  string mission_id = 1;
+  string reason = 2;
+  bool emergency_stop = 3;
+}
+
+message StopMissionResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ExecuteInspectionWorkflowRequest {
+  string mission_id = 1;
+  WorkflowConfiguration workflow_config = 2;
+}
+
+message WorkflowStatusUpdate {
+  string mission_id = 1;
+  WorkflowStage current_stage = 2;
+  double completion_percentage = 3;
+  string status_message = 4;
+  oneof stage_data {
+    TrajectoryPlanningUpdate trajectory_update = 5;
+    ImageCaptureUpdate image_update = 6;
+    DefectDetectionUpdate detection_update = 7;
+    CriticalityAssessmentUpdate criticality_update = 8;
+    ReportGenerationUpdate report_update = 9;
+  }
+  repeated string logs = 10;
+}
+
+message MissionParameters {
+  uav.trajectory.v1.TrajectoryParameters trajectory_params = 1;
+  uav.detection.v1.DetectionParameters detection_params = 2;
+  uav.criticality.v1.AssessmentParameters criticality_params = 3;
+  uav.reporting.v1.ReportConfiguration report_config = 4;
+  QualityRequirements quality_requirements = 5;
+}
+
+message MissionStartResult {
+  string mission_id = 1;
+  MissionStatus initial_status = 2;
+  uav.trajectory.v1.TrajectoryPlan planned_trajectory = 3;
+  double estimated_duration_minutes = 4;
+}
+
+message MissionProgress {
+  WorkflowStage current_stage = 1;
+  double overall_completion_percentage = 2;
+  int64 start_timestamp_ms = 3;
+  int64 estimated_completion_timestamp_ms = 4;
+  MissionStatistics statistics = 5;
+}
+
+message WorkflowStageStatus {
+  WorkflowStage stage = 1;
+  StageStatus status = 2;
+  double completion_percentage = 3;
+  string status_message = 4;
+  int64 start_timestamp_ms = 5;
+  int64 end_timestamp_ms = 6;
+}
+
+message WorkflowConfiguration {
+  bool enable_parallel_processing = 1;
+  int32 max_retry_attempts = 2;
+  int32 timeout_seconds = 3;
+  QualityGates quality_gates = 4;
+  NotificationSettings notifications = 5;
+}
+
+message TrajectoryPlanningUpdate {
+  uav.trajectory.v1.TrajectoryPlan trajectory = 1;
+  string planning_algorithm = 2;
+  double planning_time_ms = 3;
+}
+
+message ImageCaptureUpdate {
+  int32 images_captured = 1;
+  int32 total_planned_images = 2;
+  uav.common.v1.Point3D current_position = 3;
+  string current_component = 4;
+}
+
+message DefectDetectionUpdate {
+  int32 images_processed = 1;
+  int32 defects_detected = 2;
+  repeated uav.detection.v1.Defect latest_defects = 3;
+  double processing_rate_images_per_second = 4;
+}
+
+message CriticalityAssessmentUpdate {
+  int32 defects_assessed = 1;
+  int32 critical_defects_found = 2;
+  uav.criticality.v1.CriticalityLevel highest_criticality = 3;
+}
+
+message ReportGenerationUpdate {
+  string report_id = 1;
+  ReportGenerationStage generation_stage = 2;
+  double generation_progress_percentage = 3;
+}
+
+message QualityRequirements {
+  double min_image_quality_score = 1;
+  double min_detection_confidence = 2;
+  double min_coverage_percentage = 3;
+  bool require_thermal_validation = 4;
+}
+
+message MissionStatistics {
+  int32 total_images_captured = 1;
+  int32 total_defects_detected = 2;
+  int32 critical_defects_count = 3;
+  double flight_time_minutes = 4;
+  double data_processed_gb = 5;
+}
+
+message QualityGates {
+  ImageQualityGate image_quality = 1;
+  DetectionQualityGate detection_quality = 2;
+  CoverageQualityGate coverage_quality = 3;
+}
+
+message NotificationSettings {
+  repeated string notification_channels = 1;
+  repeated NotificationTrigger triggers = 2;
+}
+
+message ImageQualityGate {
+  double min_sharpness_score = 1;
+  double max_blur_percentage = 2;
+  bool enable_auto_retry = 3;
+}
+
+message DetectionQualityGate {
+  double min_confidence_threshold = 1;
+  int32 min_detections_per_component = 2;
+  bool require_consensus = 3;
+}
+
+message CoverageQualityGate {
+  double min_surface_coverage_percentage = 1;
+  double min_overlap_percentage = 2;
+  bool require_complete_coverage = 3;
+}
+
+message NotificationTrigger {
+  TriggerType type = 1;
+  TriggerCondition condition = 2;
+  string message_template = 3;
+}
+
+enum MissionStatus {
+  MISSION_STATUS_UNSPECIFIED = 0;
+  MISSION_STATUS_PLANNED = 1;
+  MISSION_STATUS_STARTING = 2;
+  MISSION_STATUS_IN_PROGRESS = 3;
+  MISSION_STATUS_PAUSED = 4;
+  MISSION_STATUS_COMPLETED = 5;
+  MISSION_STATUS_FAILED = 6;
+  MISSION_STATUS_CANCELLED = 7;
+}
+
+enum WorkflowStage {
+  WORKFLOW_STAGE_UNSPECIFIED = 0;
+  WORKFLOW_STAGE_INITIALIZATION = 1;
+  WORKFLOW_STAGE_TRAJECTORY_PLANNING = 2;
+  WORKFLOW_STAGE_FLIGHT_EXECUTION = 3;
+  WORKFLOW_STAGE_IMAGE_CAPTURE = 4;
+  WORKFLOW_STAGE_DEFECT_DETECTION = 5;
+  WORKFLOW_STAGE_CRITICALITY_ASSESSMENT = 6;
+  WORKFLOW_STAGE_REPORT_GENERATION = 7;
+  WORKFLOW_STAGE_COMPLETION = 8;
+}
+
+enum StageStatus {
+  STAGE_STATUS_UNSPECIFIED = 0;
+  STAGE_STATUS_PENDING = 1;
+  STAGE_STATUS_RUNNING = 2;
+  STAGE_STATUS_COMPLETED = 3;
+  STAGE_STATUS_FAILED = 4;
+  STAGE_STATUS_SKIPPED = 5;
+}
+
+enum ReportGenerationStage {
+  REPORT_GENERATION_STAGE_UNSPECIFIED = 0;
+  REPORT_GENERATION_STAGE_DATA_COLLECTION = 1;
+  REPORT_GENERATION_STAGE_ANALYSIS = 2;
+  REPORT_GENERATION_STAGE_FORMATTING = 3;
+  REPORT_GENERATION_STAGE_RENDERING = 4;
+  REPORT_GENERATION_STAGE_FINALIZATION = 5;
+}
+
+enum TriggerType {
+  TRIGGER_TYPE_UNSPECIFIED = 0;
+  TRIGGER_TYPE_STAGE_COMPLETION = 1;
+  TRIGGER_TYPE_ERROR_OCCURRED = 2;
+  TRIGGER_TYPE_QUALITY_GATE_FAILED = 3;
+  TRIGGER_TYPE_CRITICAL_DEFECT_FOUND = 4;
+  TRIGGER_TYPE_MISSION_COMPLETION = 5;
+}
+
+enum TriggerCondition {
+  TRIGGER_CONDITION_UNSPECIFIED = 0;
+  TRIGGER_CONDITION_ALWAYS = 1;
+  TRIGGER_CONDITION_ON_SUCCESS = 2;
+  TRIGGER_CONDITION_ON_FAILURE = 3;
+  TRIGGER_CONDITION_ON_THRESHOLD = 4;
+}

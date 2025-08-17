@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package UAV.Services;
+
+import "common.proto";
+import "trajectory.proto";
+import "defect_detection.proto";
+import "criticality.proto";
+import "reporting.proto";
+
+// Main UAV Service Definition
+// This service orchestrates the entire inspection process.
+
+service UAVService {
+  // Requests a flight trajectory for a given turbine.
+  rpc GetTrajectory(TrajectoryRequest) returns (TrajectoryResponse);
+
+  // Submits an image for defect detection.
+  rpc DetectDefects(DefectDetectionRequest) returns (DefectDetectionResponse);
+
+  // Requests a criticality assessment for a list of detected defects.
+  rpc AssessCriticality(CriticalityAssessmentRequest) returns (CriticalityAssessmentResponse);
+
+  // Generates a final inspection report.
+  rpc GenerateReport(ReportRequest) returns (ReportResponse);
+}

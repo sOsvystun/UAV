@@ -1,0 +1,601 @@
+syntax = "proto3";
+
+package uav.reporting.v1;
+
+import "common.proto";
+import "trajectory.proto";
+import "defect_detection.proto";
+import "criticality.proto";
+
+option go_package = "github.com/uav/shared/proto/reporting/v1";
+option java_package = "com.uav.reporting.v1";
+option csharp_namespace = "Uav.Reporting.V1";
+
+service ReportingService {
+  rpc GenerateInspectionReport(GenerateReportRequest) returns (GenerateReportResponse);
+  rpc GetReportStatus(GetReportStatusRequest) returns (GetReportStatusResponse);
+  rpc GetReport(GetReportRequest) returns (GetReportResponse);
+  rpc ListReports(ListReportsRequest) returns (ListReportsResponse);
+  rpc DeleteReport(DeleteReportRequest) returns (DeleteReportResponse);
+}
+
+message GenerateReportRequest {
+  string mission_id = 1;
+  string turbine_id = 2;
+  InspectionData inspection_data = 3;
+  ReportConfiguration configuration = 4;
+  string requested_by = 5;
+}
+
+message GenerateReportResponse {
+  oneof result {
+    ReportGenerationResult generation_result = 1;
+    uav.common.v1.ErrorResponse error = 2;
+  }
+}
+
+message GetReportStatusRequest {
+  string report_id = 1;
+}
+
+message GetReportStatusResponse {
+  ReportStatus status = 1;
+  double completion_percentage = 2;
+  string current_stage = 3;
+  repeated string processing_logs = 4;
+}
+
+message GetReportRequest {
+  string report_id = 1;
+  ReportFormat format = 2;
+}
+
+message GetReportResponse {
+  oneof result {
+    InspectionReport report = 1;
+    uav.common.v1.ErrorResponse error = 2;
+  }
+}
+
+message ListReportsRequest {
+  string turbine_id = 1;
+  int64 start_date_ms = 2;
+  int64 end_date_ms = 3;
+  int32 page_size = 4;
+  string page_token = 5;
+}
+
+message ListReportsResponse {
+  repeated ReportSummary reports = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message DeleteReportRequest {
+  string report_id = 1;
+  string deleted_by = 2;
+}
+
+message DeleteReportResponse {
+  bool success = 1;
+}
+
+message InspectionData {
+  string mission_id = 1;
+  uav.trajectory.v1.TrajectoryPlan executed_trajectory = 2;
+  repeated uav.detection.v1.DetectionResult detection_results = 3;
+  repeated uav.criticality.v1.CriticalityAssessmentResult criticality_assessments = 4;
+  MissionMetadata mission_metadata = 5;
+  repeated uav.common.v1.Image captured_images = 6;
+}
+
+message ReportConfiguration {
+  ReportTemplate template = 1;
+  repeated ReportSection sections = 2;
+  OutputFormats output_formats = 3;
+  bool include_raw_data = 4;
+  bool include_images = 5;
+  SecurityClassification classification = 6;
+}
+
+message ReportGenerationResult {
+  string report_id = 1;
+  repeated GeneratedReport generated_reports = 2;
+  ReportMetadata metadata = 3;
+  string download_url = 4;
+}
+
+message InspectionReport {
+  string report_id = 1;
+  ReportHeader header = 2;
+  ExecutiveSummary executive_summary = 3;
+  MissionOverview mission_overview = 4;
+  DefectAnalysis defect_analysis = 5;
+  CriticalityAssessment criticality_assessment = 6;
+  Recommendations recommendations = 7;
+  TechnicalDetails technical_details = 8;
+  repeated Appendix appendices = 9;
+  ReportFooter footer = 10;
+}
+
+message ReportSummary {
+  string report_id = 1;
+  string turbine_id = 2;
+  string mission_id = 3;
+  int64 generated_timestamp_ms = 4;
+  string generated_by = 5;
+  ReportStatus status = 6;
+  int32 total_defects = 7;
+  int32 critical_defects = 8;
+  uav.criticality.v1.CriticalityLevel highest_criticality = 9;
+}
+
+message MissionMetadata {
+  string mission_id = 1;
+  int64 start_timestamp_ms = 2;
+  int64 end_timestamp_ms = 3;
+  string operator_name = 4;
+  uav.common.v1.WeatherConditions weather_conditions = 5;
+  FlightStatistics flight_statistics = 6;
+  EquipmentUsed equipment_used = 7;
+}
+
+message ReportTemplate {
+  string template_id = 1;
+  string template_name = 2;
+  string version = 3;
+  TemplateType type = 4;
+}
+
+message ReportSection {
+  SectionType type = 1;
+  bool include = 2;
+  int32 order = 3;
+  map<string, string> parameters = 4;
+}
+
+message OutputFormats {
+  bool pdf = 1;
+  bool html = 2;
+  bool json = 3;
+  bool csv = 4;
+  bool excel = 5;
+}
+
+message GeneratedReport {
+  ReportFormat format = 1;
+  string file_path = 2;
+  string download_url = 3;
+  int64 file_size_bytes = 4;
+}
+
+message ReportMetadata {
+  string generated_by = 1;
+  int64 generation_timestamp_ms = 2;
+  double generation_time_ms = 3;
+  string software_version = 4;
+  map<string, string> generation_parameters = 5;
+}
+
+message ReportHeader {
+  string report_title = 1;
+  string turbine_id = 2;
+  string site_name = 3;
+  int64 inspection_date_ms = 4;
+  int64 report_date_ms = 5;
+  string inspector_name = 6;
+  string report_version = 7;
+  SecurityClassification classification = 8;
+}
+
+message ExecutiveSummary {
+  OverallCondition overall_condition = 1;
+  int32 total_defects_found = 2;
+  DefectSummaryByType defect_summary = 3;
+  repeated KeyFinding key_findings = 4;
+  MaintenanceUrgency maintenance_urgency = 5;
+  double estimated_repair_cost_usd = 6;
+}
+
+message MissionOverview {
+  string mission_objective = 1;
+  FlightSummary flight_summary = 2;
+  WeatherSummary weather_summary = 3;
+  EquipmentSummary equipment_summary = 4;
+  DataCollectionSummary data_collection_summary = 5;
+}
+
+message DefectAnalysis {
+  repeated ComponentAnalysis component_analyses = 1;
+  DefectDistribution defect_distribution = 2;
+  TrendAnalysis trend_analysis = 3;
+  ComparisonWithPrevious comparison_with_previous = 4;
+}
+
+message CriticalityAssessment {
+  OverallRiskAssessment overall_risk = 1;
+  repeated CriticalDefectDetail critical_defects = 2;
+  RiskMatrix risk_matrix = 3;
+  MaintenancePrioritization maintenance_prioritization = 4;
+}
+
+message Recommendations {
+  repeated MaintenanceAction immediate_actions = 1;
+  repeated MaintenanceAction scheduled_actions = 2;
+  repeated MaintenanceAction monitoring_actions = 3;
+  CostBenefitAnalysis cost_benefit_analysis = 4;
+}
+
+message TechnicalDetails {
+  InspectionMethodology methodology = 1;
+  DataProcessingDetails processing_details = 2;
+  QualityAssurance quality_assurance = 3;
+  LimitationsAndAssumptions limitations = 4;
+}
+
+message Appendix {
+  string title = 1;
+  AppendixType type = 2;
+  bytes content = 3;
+  string content_type = 4;
+}
+
+message ReportFooter {
+  string disclaimer = 1;
+  repeated string references = 2;
+  ContactInformation contact_info = 3;
+  string certification = 4;
+}
+
+message FlightStatistics {
+  double total_flight_time_minutes = 1;
+  double total_distance_km = 2;
+  double max_altitude_meters = 3;
+  double battery_usage_percent = 4;
+  int32 images_captured = 5;
+  double data_collected_gb = 6;
+}
+
+message EquipmentUsed {
+  string uav_model = 1;
+  repeated CameraSpecification cameras = 2;
+  repeated SensorSpecification sensors = 3;
+  string software_version = 4;
+}
+
+message KeyFinding {
+  string description = 1;
+  FindingSeverity severity = 2;
+  string location = 3;
+  string recommendation = 4;
+}
+
+message ComponentAnalysis {
+  ComponentType component_type = 1;
+  ConditionRating condition_rating = 2;
+  repeated DefectSummary defects = 3;
+  string analysis_notes = 4;
+}
+
+message DefectDistribution {
+  map<string, int32> by_type = 1;
+  map<string, int32> by_severity = 2;
+  map<string, int32> by_location = 3;
+}
+
+message TrendAnalysis {
+  DefectTrend overall_trend = 1;
+  repeated ComponentTrend component_trends = 2;
+  string analysis_period = 3;
+}
+
+message ComparisonWithPrevious {
+  string previous_inspection_date = 1;
+  ChangesSummary changes_summary = 2;
+  repeated DefectProgression defect_progressions = 3;
+}
+
+message CriticalDefectDetail {
+  string defect_id = 1;
+  uav.detection.v1.DefectType type = 2;
+  string location_description = 3;
+  uav.criticality.v1.CriticalityLevel criticality_level = 4;
+  string risk_description = 5;
+  string recommended_action = 6;
+  int32 action_timeframe_days = 7;
+}
+
+message RiskMatrix {
+  repeated RiskCategory categories = 1;
+  string matrix_description = 2;
+}
+
+message MaintenancePrioritization {
+  repeated PriorityGroup priority_groups = 1;
+  string prioritization_criteria = 2;
+}
+
+message MaintenanceAction {
+  string action_id = 1;
+  string description = 2;
+  ActionPriority priority = 3;
+  int32 timeframe_days = 4;
+  double estimated_cost_usd = 5;
+  repeated string required_resources = 6;
+}
+
+message CostBenefitAnalysis {
+  double total_estimated_cost_usd = 1;
+  double potential_savings_usd = 2;
+  double roi_percentage = 3;
+  string analysis_notes = 4;
+}
+
+message InspectionMethodology {
+  string approach_description = 1;
+  repeated string standards_followed = 2;
+  QualityControlMeasures quality_control = 3;
+}
+
+message DataProcessingDetails {
+  repeated string algorithms_used = 1;
+  ProcessingParameters parameters = 2;
+  ValidationMethods validation = 3;
+}
+
+message QualityAssurance {
+  repeated QualityCheck quality_checks = 1;
+  DataReliability reliability_assessment = 2;
+  string qa_notes = 3;
+}
+
+message LimitationsAndAssumptions {
+  repeated string limitations = 1;
+  repeated string assumptions = 2;
+  string confidence_level = 3;
+}
+
+message CameraSpecification {
+  string model = 1;
+  string resolution = 2;
+  string lens_type = 3;
+  repeated string capabilities = 4;
+}
+
+message SensorSpecification {
+  string type = 1;
+  string model = 2;
+  string specifications = 3;
+}
+
+message ContactInformation {
+  string organization = 1;
+  string contact_person = 2;
+  string email = 3;
+  string phone = 4;
+}
+
+// Additional message definitions for nested structures...
+message OverallCondition {
+  ConditionRating rating = 1;
+  string description = 2;
+}
+
+message DefectSummaryByType {
+  map<string, int32> defect_counts = 1;
+}
+
+message MaintenanceUrgency {
+  UrgencyLevel level = 1;
+  string justification = 2;
+}
+
+message FlightSummary {
+  int64 start_time_ms = 1;
+  int64 end_time_ms = 2;
+  double duration_minutes = 3;
+  string flight_path_description = 4;
+}
+
+message WeatherSummary {
+  uav.common.v1.WeatherConditions conditions = 1;
+  string impact_assessment = 2;
+}
+
+message EquipmentSummary {
+  repeated string equipment_list = 1;
+  string performance_notes = 2;
+}
+
+message DataCollectionSummary {
+  int32 total_images = 1;
+  double total_data_gb = 2;
+  string coverage_assessment = 3;
+}
+
+message DefectSummary {
+  uav.detection.v1.DefectType type = 1;
+  int32 count = 2;
+  uav.criticality.v1.CriticalityLevel max_criticality = 3;
+}
+
+message ComponentTrend {
+  ComponentType component = 1;
+  TrendDirection direction = 2;
+  string description = 3;
+}
+
+message ChangesSummary {
+  int32 new_defects = 1;
+  int32 resolved_defects = 2;
+  int32 progressed_defects = 3;
+}
+
+message DefectProgression {
+  string defect_id = 1;
+  ProgressionType progression_type = 2;
+  string description = 3;
+}
+
+message RiskCategory {
+  string category_name = 1;
+  RiskLevel risk_level = 2;
+  int32 defect_count = 3;
+}
+
+message PriorityGroup {
+  ActionPriority priority = 1;
+  repeated string action_ids = 2;
+  string description = 3;
+}
+
+message QualityControlMeasures {
+  repeated string measures = 1;
+  string compliance_notes = 2;
+}
+
+message ProcessingParameters {
+  map<string, string> parameters = 1;
+}
+
+message ValidationMethods {
+  repeated string methods = 1;
+  string validation_notes = 2;
+}
+
+message QualityCheck {
+  string check_name = 1;
+  bool passed = 2;
+  string notes = 3;
+}
+
+message DataReliability {
+  double confidence_score = 1;
+  string reliability_notes = 2;
+}
+
+// Enums
+enum ReportStatus {
+  REPORT_STATUS_UNSPECIFIED = 0;
+  REPORT_STATUS_PENDING = 1;
+  REPORT_STATUS_PROCESSING = 2;
+  REPORT_STATUS_COMPLETED = 3;
+  REPORT_STATUS_FAILED = 4;
+}
+
+enum ReportFormat {
+  REPORT_FORMAT_UNSPECIFIED = 0;
+  REPORT_FORMAT_PDF = 1;
+  REPORT_FORMAT_HTML = 2;
+  REPORT_FORMAT_JSON = 3;
+  REPORT_FORMAT_CSV = 4;
+  REPORT_FORMAT_EXCEL = 5;
+}
+
+enum SecurityClassification {
+  SECURITY_CLASSIFICATION_UNSPECIFIED = 0;
+  SECURITY_CLASSIFICATION_PUBLIC = 1;
+  SECURITY_CLASSIFICATION_INTERNAL = 2;
+  SECURITY_CLASSIFICATION_CONFIDENTIAL = 3;
+  SECURITY_CLASSIFICATION_RESTRICTED = 4;
+}
+
+enum TemplateType {
+  TEMPLATE_TYPE_UNSPECIFIED = 0;
+  TEMPLATE_TYPE_STANDARD = 1;
+  TEMPLATE_TYPE_DETAILED = 2;
+  TEMPLATE_TYPE_SUMMARY = 3;
+  TEMPLATE_TYPE_CUSTOM = 4;
+}
+
+enum SectionType {
+  SECTION_TYPE_UNSPECIFIED = 0;
+  SECTION_TYPE_EXECUTIVE_SUMMARY = 1;
+  SECTION_TYPE_MISSION_OVERVIEW = 2;
+  SECTION_TYPE_DEFECT_ANALYSIS = 3;
+  SECTION_TYPE_CRITICALITY_ASSESSMENT = 4;
+  SECTION_TYPE_RECOMMENDATIONS = 5;
+  SECTION_TYPE_TECHNICAL_DETAILS = 6;
+  SECTION_TYPE_APPENDICES = 7;
+}
+
+enum ComponentType {
+  COMPONENT_TYPE_UNSPECIFIED = 0;
+  COMPONENT_TYPE_BLADE = 1;
+  COMPONENT_TYPE_TOWER = 2;
+  COMPONENT_TYPE_NACELLE = 3;
+  COMPONENT_TYPE_HUB = 4;
+}
+
+enum ConditionRating {
+  CONDITION_RATING_UNSPECIFIED = 0;
+  CONDITION_RATING_EXCELLENT = 1;
+  CONDITION_RATING_GOOD = 2;
+  CONDITION_RATING_FAIR = 3;
+  CONDITION_RATING_POOR = 4;
+  CONDITION_RATING_CRITICAL = 5;
+}
+
+enum FindingSeverity {
+  FINDING_SEVERITY_UNSPECIFIED = 0;
+  FINDING_SEVERITY_INFO = 1;
+  FINDING_SEVERITY_LOW = 2;
+  FINDING_SEVERITY_MEDIUM = 3;
+  FINDING_SEVERITY_HIGH = 4;
+  FINDING_SEVERITY_CRITICAL = 5;
+}
+
+enum DefectTrend {
+  DEFECT_TREND_UNSPECIFIED = 0;
+  DEFECT_TREND_IMPROVING = 1;
+  DEFECT_TREND_STABLE = 2;
+  DEFECT_TREND_DETERIORATING = 3;
+}
+
+enum TrendDirection {
+  TREND_DIRECTION_UNSPECIFIED = 0;
+  TREND_DIRECTION_IMPROVING = 1;
+  TREND_DIRECTION_STABLE = 2;
+  TREND_DIRECTION_DETERIORATING = 3;
+}
+
+enum ProgressionType {
+  PROGRESSION_TYPE_UNSPECIFIED = 0;
+  PROGRESSION_TYPE_NEW = 1;
+  PROGRESSION_TYPE_GROWN = 2;
+  PROGRESSION_TYPE_STABLE = 3;
+  PROGRESSION_TYPE_RESOLVED = 4;
+}
+
+enum RiskLevel {
+  RISK_LEVEL_UNSPECIFIED = 0;
+  RISK_LEVEL_LOW = 1;
+  RISK_LEVEL_MEDIUM = 2;
+  RISK_LEVEL_HIGH = 3;
+  RISK_LEVEL_CRITICAL = 4;
+}
+
+enum ActionPriority {
+  ACTION_PRIORITY_UNSPECIFIED = 0;
+  ACTION_PRIORITY_LOW = 1;
+  ACTION_PRIORITY_MEDIUM = 2;
+  ACTION_PRIORITY_HIGH = 3;
+  ACTION_PRIORITY_CRITICAL = 4;
+}
+
+enum UrgencyLevel {
+  URGENCY_LEVEL_UNSPECIFIED = 0;
+  URGENCY_LEVEL_ROUTINE = 1;
+  URGENCY_LEVEL_SCHEDULED = 2;
+  URGENCY_LEVEL_PRIORITY = 3;
+  URGENCY_LEVEL_URGENT = 4;
+  URGENCY_LEVEL_EMERGENCY = 5;
+}
+
+enum AppendixType {
+  APPENDIX_TYPE_UNSPECIFIED = 0;
+  APPENDIX_TYPE_IMAGES = 1;
+  APPENDIX_TYPE_DATA = 2;
+  APPENDIX_TYPE_TECHNICAL_SPECS = 3;
+  APPENDIX_TYPE_REFERENCES = 4;
+}

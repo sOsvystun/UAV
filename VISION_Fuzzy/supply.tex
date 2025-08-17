@@ -1,0 +1,618 @@
+%=================================================================
+%  Document Class and Packages
+\documentclass[energies,supfile,submit,pdftex,moreauthors]{Definitions/mdpi}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{lscape}
+\usepackage{amssymb}
+
+% Custom listing style for Python code
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+%=================================================================
+%  Revision Markup Commands
+%=================================================================
+\newcommand{\revtag}[2]{[\textbf{R#1-C#2}]}
+\newcommand{\Rone}[1]{\textcolor{red}{#1}}
+\newcommand{\Rtwo}[1]{\textcolor{blue}{#1}}
+\newcommand{\Rthree}[1]{\textcolor{purple}{#1}}
+
+%=================================================================
+%  Preamble and Metadata
+%=================================================================
+\firstpage{1}
+\makeatletter
+\setcounter{page}{\@firstpage}
+\makeatother
+\pubvolume{1}
+\issuenum{1}
+\articlenumber{0}
+\pubyear{2025}
+\copyrightyear{2025}
+\externaleditor{Academic Editor}
+\datereceived{}
+\daterevised{}
+\dateaccepted{}
+\datepublished{}
+\hreflink{https://doi.org/}
+
+\Title{In-Depth Technical Exposition of Expert-Driven Criticality Models, Fuzzy Inference System Design, and Validation Protocol for Wind Turbine Defect Assessment}
+
+\Author{Pavlo Radiuk, Bohdan Rusyn, Oleksandr Melnychenko, Tomasz Perzynski, Anatoliy Sachenko, Serhii Svystun, Oleg Savenko}
+\AuthorNames{Pavlo Radiuk, Bohdan Rusyn, Oleksandr Melnychenko, Tomasz Perzynski, Anatoliy Sachenko, Serhii Svystun, Oleg Savenko}
+
+\address{%
+$^{1}$ \quad Faculty of Information Technologies, Khmelnytskyi National University, Khmelnytskyi, Ukraine\\
+$^{2}$ \quad Department of Information Technologies of Remote Sensing, Karpenko Physico-Mechanical Institute of NAS of Ukraine, Lviv, Ukraine\\
+$^{3}$ \quad Faculty of Transport, Electrical Engineering and Computer Science, Casimir Pulaski Radom University, Radom, Poland\\
+$^{4}$ \quad Research Institute for Intelligent Computer Systems, West Ukrainian National University, Ternopil, Ukraine\\
+}
+\corres{Correspondence: radiukp@khmnu.edu.ua (P.R.)}
+
+\abstract{This supplementary document provides a comprehensive technical elaboration of the methodologies presented in the main manuscript, "Criticality Assessment of Wind Turbine Defects via Multispectral UAV Fusion and Fuzzy Logic." Its purpose is to ensure full scientific transparency and enable the complete reproduction of our findings. We present the detailed mathematical derivations and physical justifications for the expert-driven criticality models used to assess cracks, erosion, and overheating (hotspots). This includes the complete tabulation of all component-specific weighting coefficients, explicitly linking them to the structural and operational principles outlined in international standards such as IEC 61400-5. We then offer an in-depth guide to the design and implementation of the Fuzzy Inference System (FIS), detailing the rationale for the choice of a Mamdani architecture, the selection of fuzzy operators, and the parameterization of every membership function. An expanded Python code listing using the scikit-fuzzy library, including the full 27-rule knowledge base, is provided. Furthermore, we describe the protocol used for establishing the expert-derived ground-truth validation set, including an analysis of inter-rater reliability. A global sensitivity analysis is detailed, which quantitatively demonstrates the robustness of the FIS to parameter uncertainty. Finally, we include a complete reproducibility checklist with software versions and deterministic settings to ensure our work is verifiable.}
+
+\keyword{fuzzy inference system; expert models; wind turbine blade; crack; erosion; overheating; hotspot; membership functions; sensitivity analysis; scikit-fuzzy; python; inter-rater reliability; IEC 61400; reproducibility}
+
+\begin{document}
+
+\section{Introduction}
+This supplementary document is intended to provide a granular, in-depth technical exposition of the core methodological components developed for the main article, ``Criticality Assessment of Wind Turbine Defects via Multispectral UAV Fusion and Fuzzy Logic.'' While the main manuscript presents the overarching framework and key results, space constraints inherent to journal formats preclude a full discussion of the mathematical derivations, implementation details, and validation protocols that underpin the research. The primary objective of this document is therefore to ensure full scientific transparency and provide the necessary information for other researchers to faithfully reproduce, validate, and build upon our work.
+
+This document is structured to ensure full reproducibility. \Rtwo{\revtag{2}{1}Section~\ref{sec:models} derives the expert-driven mathematical models for cracks, erosion, and hotspots, complete with component-specific weighting coefficients.} \Rone{\revtag{1}{2}Section~\ref{sec:fis_implementation} then details the Fuzzy Inference System (FIS) design, including its Mamdani architecture, membership function parameterization, and Python implementation.} \Rone{\revtag{1}{2}To validate our system, Section~\ref{sec:ground_truth} describes the ground-truth protocol and inter-rater reliability analysis.} \Rone{\revtag{1}{2}}\Rthree{\revtag{3}{3}Section~\ref{sec:sensitivity} presents a global sensitivity analysis to confirm the FIS's robustness,} \Rtwo{\revtag{2}{1}and Section~\ref{sec:reproducibility} provides a comprehensive reproducibility checklist with all necessary software versions and settings.}
+
+\section{Derivation and Justification of Expert-Driven Criticality Models}\label{sec:models}
+\Rtwo{\revtag{2}{1}The expert-driven models in Block 2 of our framework serve to inject physics-informed knowledge into the criticality assessment process. They provide an initial estimate of severity, \(C_{\text{exp}}\), based on formal mathematical representations of how different defect types compromise a component's integrity or function. Each model is tailored to the specific failure mechanisms of the defect class and is modulated by a set of dimensionless weighting coefficients that quantify the importance of the component on which the defect is located. These models provide a crucial, knowledge-based anchor for the subsequent fuzzy integration stage.}
+
+\subsection{Crack Criticality Model}
+\subsubsection{Theoretical Basis}
+The criticality of a surface crack in a composite structure like a wind turbine blade is governed by the principles of fracture mechanics. According to these principles, the likelihood of a crack propagating to a critical length (leading to failure) depends on the stress intensity at its tip, which in turn is a function of the applied load, the crack's length, and its geometry. Our expert model is a simplified, integrated proxy for this risk. It posits that criticality is proportional to the crack's overall size (both length and width) and its geometric complexity (curvature and tortuosity), as these factors influence stress concentrations. The formal model is expressed as an integral along the crack's path:
+\begin{equation}
+ C_{\text{exp}}^{\text{crack}} = \beta_c \int_0^{L} w_{\text{visible}}(s)\,\bigl|r'(s)\bigr|\,\bigl[1+\kappa(s)\bigr]\,\mathrm{d}s,
+ \label{eq:crackcrit}
+\end{equation}
+where \(L\) is the total arc length of the crack, \(w_{\text{visible}}(s)\) is its visible width at a point \(s\) along its path, \(r(s)\) is a parametric representation of the crack's centerline, \(|r'(s)|\) is the arc length derivative (a measure of tortuosity, which is \(\approx 1\) for a straight crack and greater for a meandering one), and \(\kappa(s)\) is the local curvature. The entire expression is modulated by the component-specific weighting factor \(\beta_c\).
+
+\subsubsection{Discretized Implementation}
+For computational implementation, the integral in Equation~\ref{eq:crackcrit} is approximated by discretizing the crack path into \(N\) segments. Assuming that the width and curvature are approximately constant over the crack's length, the integral simplifies to an algebraic expression:
+\begin{equation}
+ C_{\text{exp}}^{\text{crack}} \approx \beta_c \cdot L \cdot w_{\text{avg}} \cdot (1 + \kappa_{\text{avg}}),
+\end{equation}
+where \(L\), \(w_{\text{avg}}\), and \(\kappa_{\text{avg}}\) are the total length, average width, and average curvature, respectively, as measured by the image processing pipeline in Block 1.
+
+\subsubsection{Weighting Coefficients for Crack Criticality Model}
+The \(\beta_c\) coefficients, detailed in Table~\ref{tab:beta_coeff}, are crucial for contextualizing the crack's severity. They are derived from a combination of expert elicitation with Level-II certified blade technicians and a review of finite element analysis (FEA) stress maps consistent with the design load cases specified in IEC 61400-5~\cite{iec61400-5}. The blade root, which experiences the maximum bending moments and is most susceptible to fatigue failure, is assigned the highest weight (\(\beta_c = 1.0\)), establishing it as the reference point for structural criticality.
+
+\begin{table}[!htb]
+\caption{Component-specific weighting coefficients \(\beta_c\) for the crack criticality model, with detailed justification.}
+\label{tab:beta_coeff}
+\centering
+\begin{tabularx}{\textwidth}{l c X}
+\toprule
+\textbf{Component} & \(\boldsymbol{\beta_c}\) & \textbf{Justification and Rationale} \\
+\midrule
+Blade root (0–15\% span) & 1.00 & Region of maximum bending stress and fatigue load concentration. A crack here has the highest probability of catastrophic propagation. This is the baseline for maximum structural risk. \\
+Mid-span (15–70\% span)   & 0.65 & Experiences significant aerodynamic loads and flap-wise bending stresses, but lower than the root. A crack here poses a high but not immediate catastrophic risk. \\
+Blade tip (70–100\% span) & 0.40 & Dominated by aerodynamic forces rather than structural loads. A crack is less likely to cause structural failure but can lead to aerodynamic inefficiency and noise. \\
+Spar cap               & 0.80 & The primary longitudinal load-bearing element of the blade. A crack in the spar cap directly compromises the blade's fundamental structural integrity. \\
+Trailing edge         & 0.50 & Prone to adhesive disbonding and delamination, which can be initiated by surface cracks. Less critical than the spar cap but a known failure point. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Erosion Criticality Model}
+\subsubsection{Theoretical Basis}
+\Rtwo{\revtag{2}{2}The criticality of erosion on metallic components (e.g., tower sections, nacelle fixings) or degradation of composite surfaces is primarily a function of the affected area and the rate of material loss, which can compromise structural integrity or expose sensitive internal components. The expert model is formulated as:
+\begin{equation}
+ C_{\text{exp}}^{\text{erosion}} = \gamma_c \cdot A_{\text{real}} \cdot \left(1 + \lambda_c(E) \cdot t_{\text{exp}}\right),
+ \label{eq:erosioncrit}
+\end{equation}
+where \(\gamma_c\) is the component weighting factor, \(A_{\text{real}}\) is the measured area of erosion, \(\lambda_c(E)\) is a material- and environment-dependent erosion kinetics constant (e.g., higher in saline offshore environments, \(E\)), and \(t_{\text{exp}}\) is the estimated time of exposure.
+}
+
+Since a single inspection cannot determine \(t_{\text{exp}}\), our implementation simplifies the model by treating criticality as directly proportional to the measured area, with the environmental context captured by the expert's assignment of \(\gamma_c\). The simplified form used in our system is:
+\begin{equation}
+ C_{\text{exp}}^{\text{erosion}} \approx \gamma_c \cdot A_{\text{real}}.
+\end{equation}
+
+\subsubsection{Weighting Coefficients for Erosion Criticality Model}
+The \(\gamma_c\) values, shown in Table~\ref{tab:gamma_coeff}, reflect the consequence of material degradation on a given component. For instance, erosion on a blade's bond line is highly critical as it can compromise the adhesive joint, while erosion on the nacelle housing is critical because it can lead to water ingress and subsequent damage to expensive electrical and mechanical systems.
+
+\begin{table}[!htb]
+\caption{Component-specific weighting coefficients \(\gamma_c\) for the erosion criticality model, with detailed justification.}
+\label{tab:gamma_coeff}
+\centering
+\begin{tabularx}{\textwidth}{l c X}
+\toprule
+\textbf{Component} & \(\boldsymbol{\gamma_c}\) & \textbf{Justification and Rationale} \\
+\midrule
+Blade root (bond line) & 0.90 & Erosion at this critical interface can compromise the main adhesive bonds holding the blade shells together, representing a severe structural risk. \\
+Mid-span shell & 0.50 & Affects the aerodynamic profile, leading to efficiency losses. Can also be a precursor to moisture ingress into the composite core. \\
+Blade tip       & 0.30 & Primarily an aerodynamic efficiency and noise concern; low structural impact. \\
+Nacelle housing & 0.70 & High criticality due to the risk of water ingress, which can cause catastrophic failure of the generator, gearbox, and control systems. \\
+Tower sections  & 0.60 & A direct structural integrity concern, especially at bolted flange joints where erosion can accelerate fatigue. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Overheating (Hotspot) Criticality Model}
+\subsubsection{Theoretical Basis}
+\Rtwo{\revtag{2}{2}Thermal anomalies are key indicators of either subsurface structural defects (e.g., delamination, which alters thermal insulation) or electrical/mechanical faults. The criticality is a function of both the magnitude of the temperature deviation (\(\Delta T_{\max}\)) and the spatial concentration of the heat, which can be quantified by the temperature Laplacian (\(\nabla^2 T\)). A high-magnitude, sharply localized hotspot is more critical than a diffuse, low-magnitude thermal anomaly. The model is:
+\begin{equation}
+ C_{\text{exp}}^{\text{hotspot}} = \eta_c \cdot \left(\Delta T_{\max}\right)^2 \cdot \overline{|\nabla^2 T|},
+ \label{eq:heatingcrit}
+\end{equation}
+where \(\eta_c\) is the weighting coefficient, \(\Delta T_{\max} = T_{\max} - T_{\text{ambient}}\), and \(\overline{|\nabla^2 T|}\) is the mean of the absolute value of the temperature Laplacian over the defect area, calculated from the radiometric thermal image.
+}
+
+The squared term for \(\Delta T_{\max}\) reflects the non-linear relationship between temperature rise and failure risk in many electrical and mechanical systems (e.g., power dissipation is proportional to \(I^2R\)). The Laplacian term acts as a spatial high-pass filter, emphasizing sharp temperature gradients characteristic of localized faults.
+
+\subsubsection{Weighting Coefficients for Overheating (Hotspot) Criticality Model}
+The \(\eta_c\) values in Table~\ref{tab:eta_coeff} are assigned based on the severity of the potential failure mode indicated by overheating. A hotspot on the generator housing is given the maximum weight (\(\eta_c = 1.0\)) as it is a direct indicator of a potential electrical fault or bearing failure, both of which can lead to fire and catastrophic turbine loss. A hotspot on a blade's spar cap is also highly critical as it strongly suggests an internal disbond of the main load-bearing structure.
+
+\begin{table}[!htb]
+\caption{Component-specific weighting coefficients \(\eta_c\) for the overheating criticality model, with detailed justification.}
+\label{tab:eta_coeff}
+\centering
+\begin{tabularx}{\textwidth}{l c X}
+\toprule
+\textbf{Component} & \(\boldsymbol{\eta_c}\) & \textbf{Justification and Rationale} \\
+\midrule
+Generator housing   & 1.00 & Direct indicator of critical electrical (winding fault) or mechanical (bearing failure) issues. Highest risk of fire and catastrophic failure. \\
+Blade spar cap      & 0.80 & Strongly suggests internal delamination or adhesive disbonding of the primary load-bearing structural element, a severe structural risk. \\
+Blade shell         & 0.50 & Typically indicates subsurface voids or moisture ingress, which is a moderate structural concern that can worsen over time. \\
+Tower electronics   & 0.70 & Risk of failure in critical control systems, potentially leading to unsafe operation or emergency shutdown. \\
+Trailing edge shear web & 0.60 & Indicates potential failure of adhesive bonds in a key structural area responsible for maintaining the blade's aerodynamic profile. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Design and Implementation of the Fuzzy Inference System}\label{sec:fis_implementation}
+
+\subsection{Rationale for Selecting a Mamdani-Type FIS}
+\Rone{\revtag{1}{2}We selected a Mamdani-type FIS over other architectures (e.g., Sugeno) for one primary reason: interpretability. In a Mamdani system, both the antecedents (the IF part) and the consequents (the THEN part) of the rules are fuzzy sets. This allows the entire knowledge base to be expressed in intuitive, linguistic terms (e.g., ``IF Defect\_Size is `Large' AND Location is 'Root' THEN Criticality is `Severe'''). This direct mapping to human language makes the system's reasoning transparent and easy for domain experts (O\&M engineers) to validate, debug, and trust. While Sugeno systems can be more computationally efficient, their consequents are mathematical functions, which makes the rule base less intuitive and more like a ``black box,'' conflicting with our central goal of creating an explainable, certifiable AI system for a safety-critical application.}
+
+\subsection{Fuzzy Variables and Universes of Discourse}
+The FIS is built upon three antecedent (input) variables and one consequent (output) variable. Each variable is defined over a numerical range called the universe of discourse, chosen to encompass all plausible physical measurements.
+\begin{itemize}
+    \item Defect Size (Antecedent): Universe [0, 1000] \si{mm^2}. \Rone{\revtag{1}{2}This represents the real-world area of the defect after photogrammetric scaling. The range was set to cover everything from minor pitting to extensive erosion patches.}
+    \item Location (Antecedent): Universe [0, 1] normalized units. This maps the physical location along the blade span (0 representing the blade root, 1 representing the blade tip) to a continuous variable, allowing for location-dependent rules.
+    \item Thermal Signature (Antecedent): Universe [0, 25] \si{\celsius}. This represents the maximum temperature difference (\(\Delta T_{\max}\)) between the defect and its immediate, non-defective surroundings. The range is based on typical thermal contrasts observed in field data.
+    \item Criticality (Consequent): Universe [0, 5]. This corresponds to the final output score, designed to align directly with the five-level EPRI damage taxonomy for intuitive interpretation by maintenance teams.
+\end{itemize}
+
+\subsection{Membership Function Design and Parameterization}
+\Rone{\revtag{1}{2}The parameters for all fuzzy sets were determined through a systematic, hybrid approach combining expert knowledge with data-driven analysis to ensure both physical relevance and empirical grounding. First, initial boundaries for linguistic terms (e.g., 'Small,' 'Medium,' 'Large') were established through structured interviews with our panel of three certified O\&M engineers. The engineers were asked to define quantitative ranges for these terms based on their field experience. Second, these initial, expert-derived parameters were refined by aligning the breakpoints of the membership functions with the empirical quantiles (specifically, the 10th, 50th, and 90th percentiles) of the corresponding defect parameters from our combined training dataset. This data-driven refinement ensures that the fuzzy sets provide meaningful coverage, discrimination, and overlap for the actual distribution of data the system will encounter. The complete, final parameterization for the implemented FIS is detailed in Table~\ref{tab:fis_membership_params}.}
+
+\begin{table}[!htb]
+\caption{\Rone{\revtag{1}{2}Complete membership function parameters for the implemented Fuzzy Inference System. The parameters define the shape of each linguistic term's fuzzy set. Trapezoidal sets are defined by four points (\(a, b, c, d\)), Z- and S-shaped sets by two inflection points (\(a, b\)), Gaussian sets by a mean (\(\mu\)) and standard deviation (\(\sigma\)), and Triangular sets by three points (\(a, b, c\)). Lvl stands for ``Level.''}}
+\label{tab:fis_membership_params}
+\centering
+\begin{tabularx}{\textwidth}{l l l X}
+\toprule
+\textbf{Variable} & \textbf{Term} & \textbf{Shape} & \textbf{Parameters and Rationale} \\
+\midrule
+\multirow{3}{*}{\shortstack[l]{Defect Size \\(\si{mm^2})}} & Small  & Trapezoidal & \(a=0, b=0, c=50, d=100\). \Rone{\revtag{1}{2}Covers defects up to the 25th percentile of the data, corresponding to minor surface flaws.} \\
+            & Medium & Trapezoidal & \(a=50, b=100, c=400, d=500\). \Rone{\revtag{1}{2}Centered around the median defect size in the training set.} \\
+            & Large  & Trapezoidal & \(a=400, b=500, c=1000, d=1000\). \Rone{\revtag{1}{2}Covers defects from the 75th percentile upwards, representing significant damage.} \\
+\midrule
+\multirow{3}{*}{\shortstack[l]{Location \\(normalized)}} & Root & Z-shaped & \(a=0.0, b=0.33\). Models the high structural criticality at the blade root, which gradually decreases towards the mid-span. \\
+            & Mid-span & Gaussian & \(\mu=0.5, \sigma=0.1\). A symmetric function that peaks at the center of the blade span, isolating the mid-section. \\
+            & Tip & S-shaped & \(a=0.66, b=1.0\). Models the distinct aerodynamic risks that become dominant at the blade tip. \\
+\midrule
+\multirow{3}{*}{\shortstack[l]{Thermal Signature \\(\(\Delta T\) in \si{\celsius})}} & Low    & Trapezoidal & \(a=0, b=0, c=2, d=4\). Corresponds to minor thermal variations, sensor noise, or insignificant anomalies. \\
+            & Medium & Trapezoidal & \(a=3, b=5, c=8, d=10\). Indicates a clear thermal anomaly that warrants monitoring. \\
+            & High   & Trapezoidal & \(a=9, b=12, c=25, d=25\). Aligned with industry best practices where \(\Delta T > 10-15^\circ\)C indicates a potentially severe subsurface issue. \\
+\midrule
+\multirow{5}{*}{\shortstack[l]{Criticality \\(1--5 scale)}} & Negligible & Triangular & \(a=0, b=1, c=2\). Centered on EPRI Lvl 1 (`Monitor'). \\
+            & Low        & Triangular & \(a=1, b=2, c=3\). Centered on EPRI Lvl 2 (`Repair at next opportunity'). \\
+            & Medium     & Triangular & \(a=2, b=3, c=4\). Centered on EPRI Lvl 3 (`Repair soon'). \\
+            & High       & Triangular & \(a=3, b=4, c=5\). Centered on EPRI Lvl 4 (`Urgent repair'). \\
+            & Severe     & Trapezoidal & \(a=4, b=5, c=5, d=5\). Represents EPRI Lvl 5 (`Immediate action required'). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{FIS Python Implementation and Alternative Libraries}
+The FIS was implemented using the scikit–fuzzy v0.5.0~\cite{warner2018scikitfuzzy} library in Python, chosen for its straightforward API and alignment with the scientific Python ecosystem. Listings~\ref{lst:scikit-code-part1} through \ref{lst:scikit-code-part3} provide the complete, commented Python code, including the definition of all antecedents, consequents, membership functions as specified in Table~\ref{tab:fis_membership_params}, and the full 27-rule knowledge base that encodes the expert logic.
+
+\Rone{\revtag{1}{2}While scikit–fuzzy was used for the main implementation due to its prevalence and ease of use, we validated the portability of our FIS design by cross‑checking selected inference cases using two alternative open-source libraries. The Octave Fuzzy Logic Toolkit v0.6.2~\cite{octavefuzzytoolkit2007}, an established toolbox for GNU Octave, can directly import the standard \texttt{.fis} format and is widely used in control engineering. In addition, the emerging FuzzyLogic.jl v0.3.0~\cite{fuzzylogicjl2020} package for the Julia language offers a modern, high‑performance environment for fuzzy inference that benefits from Julia's just‑in‑time (JIT) compilation. Both of these alternative toolkits successfully reproduced our rule base and yielded final defuzzified criticality scores within \(\pm0.01\) of those obtained with our primary scikit–fuzzy implementation, demonstrating that our design is robust and portable across different software ecosystems.}
+
+\section{Protocol for Ground-Truth Validation}\label{sec:ground_truth}
+\Rone{\revtag{1}{2}A rigorous validation of any automated assessment system requires a high-quality, reliable ground-truth benchmark. To create this benchmark for our study, we followed a formal, multi-step protocol involving a panel of human experts, ensuring that the reference standard for our evaluation was both consistent and representative of industry best practices.}
+
+\subsection{Expert Panel Composition and Briefing}
+The panel consisted of three certified Operations and Maintenance (O\&M) engineers, each with over 10 years of field experience in wind turbine blade inspection and repair, sourced from a partner industrial services company. To mitigate subjective bias and ensure a common evaluation framework, the panel underwent a two-hour briefing session prior to the rating task. During this session, they were provided with a standardized rating guide explicitly based on the five-level EPRI damage taxonomy. This guide provided clear definitions and illustrated, real-world examples for each criticality level (from Level 1: `Observation/Monitoring' to Level 5: `Immediate Action Required') to anchor their judgments and standardize their interpretation of the scale.
+
+\subsection{Inter-Rater Reliability Analysis}
+The experts independently reviewed and rated every defect in the held-out test set, which was presented to them as a dossier containing the cropped ROI for each defect in both RGB and thermal modalities, alongside its measured physical parameters (size, location). To quantitatively assess the consistency of their independent ratings, we performed an inter-rater reliability analysis using Fleiss' Kappa (\(\kappa\)), a robust statistical measure suitable for assessing the agreement between a fixed number of raters when assigning categorical ratings. The formula for Fleiss' Kappa is given by:
+\begin{equation}
+    \kappa = \frac{\bar{P} - \bar{P}_e}{1 - \bar{P}_e},
+\end{equation}
+where \(\bar{P}\) is the mean of the proportions of pair agreements and \(\bar{P}_e\) is the mean of the proportions of agreements expected by chance.
+
+The calculated Fleiss' Kappa for our panel was \(\kappa = 0.85\) (p < 0.001), which, according to established interpretation guidelines (e.g., Landis and Koch), indicates ``almost perfect agreement.'' This high level of agreement provides strong statistical confidence in the consistency and reliability of the expert-generated ground-truth labels. The final ground-truth label for each defect was determined by taking the median score of the three raters, a measure robust to outliers, to create a single, authoritative benchmark for system evaluation.
+
+\section{Global Sensitivity Analysis of the FIS}\label{sec:sensitivity}
+\subsection{Methodology for Parameter Perturbation}
+\Rone{\revtag{1}{2}To rigorously quantify the robustness of our FIS and its resilience to potential inaccuracies in its knowledge base, we conducted a global sensitivity analysis. This analysis systematically tests how the system's output (the final criticality score) is affected by simultaneous, joint variations in the parameters defining its membership functions.} \Rthree{\revtag{3}{3}For this analysis, we defined three simplified, single-input parameterization schemes for each major defect class: a `Nominal' scheme based on our main FIS, a `Conservative' scheme that assigns higher severity more readily, and a `Liberal' scheme that is more tolerant of defects. The exact parameters for these schemes, which are visualized in Figure~\ref{fig:s1_sensitivity_functions}, are detailed in Table~\ref{tab:sensitivity_membership_params}.}
+
+\begin{figure}[!htb]
+    \begin{adjustwidth}{-\extralength}{0cm}
+    \centering
+    \subfloat[Crack (Conservative)]{\includegraphics[width=0.32\linewidth]{img/61_fig_s1a_memb_func.pdf}}
+    \hfill
+    \subfloat[Crack (Nominal)]{\includegraphics[width=0.32\linewidth]{img/61_fig_s1b_memb_func.pdf}}
+    \hfill
+    \subfloat[Crack (Liberal)]{\includegraphics[width=0.32\linewidth]{img/61_fig_s1c_memb_func.pdf}}
+    \vspace{1em} 
+    \subfloat[Erosion (Conservative)]{\includegraphics[width=0.32\linewidth]{img/61_fig_s1d_memb_func.pdf}}
+    \hfill
+    \subfloat[Erosion (Nominal)]{\includegraphics[width=0.32\linewidth]{img/61_fig_s1e_memb_func.pdf}}
+    \hfill
+    \subfloat[Erosion (Liberal)]{\includegraphics[width=0.32\linewidth]{img/61_fig_s1f_memb_func.pdf}}
+    \vspace{1em} 
+    \subfloat[Hotspot (Conservative)]{\includegraphics[width=0.32\linewidth]{img/61_fig_s1g_memb_func.pdf}}
+    \hfill
+    \subfloat[Hotspot (Nominal)]{\includegraphics[width=0.32\linewidth]{img/61_fig_s1h_memb_func.pdf}}
+    \hfill
+    \subfloat[Hotspot (Liberal)]{\includegraphics[width=0.32\linewidth]{img/61_fig_s1i_memb_func.pdf}}
+    \end{adjustwidth}
+    \caption{Visualization of membership functions for simplified, single-input models of the three primary defect classes under the three different parameterization schemes used for sensitivity analysis: conservative, nominal, and liberal. The exact parameters for each function are provided in Table~\ref{tab:sensitivity_membership_params}.}
+    \label{fig:s1_sensitivity_functions}
+\end{figure}
+
+\begin{table}[!htb]
+\caption{Membership function parameters for the three parameterization schemes used in the sensitivity analysis and visualized in Figure~\ref{fig:s1_sensitivity_functions}. The input variable is a simplified, one-dimensional proxy for defect severity (e.g., area for cracks/erosion, temperature difference for hotspots) to isolate the effect of parameter changes.}
+\label{tab:sensitivity_membership_params}
+\centering
+\begin{tabularx}{\textwidth}{X l l l}
+\toprule
+\textbf{Defect Class (Severity Proxy)} & \textbf{Scheme} & \textbf{Shape} & \textbf{Parameters} \\
+\midrule
+\multirow{3}{*}{Crack (Area in \si{mm^2})} 
+& Conservative & Triangular & $(300, 600, 1000)$ \\
+& Nominal      & Triangular & $(150, 400, 900)$ \\
+& Liberal      & Triangular & $(80, 250, 700)$ \\
+\midrule
+\multirow{3}{*}{Erosion (Area in \si{mm^2})} 
+& Conservative & Trapezoidal & $(400, 600, 1000, 1000)$ \\
+& Nominal      & Trapezoidal & $(250, 450, 1000, 1000)$ \\
+& Liberal      & Trapezoidal & $(100, 250, 800, 1000)$ \\
+\midrule
+\multirow{3}{*}{Hotspot (\(\Delta T\) in \si{\celsius})}
+& Conservative & Gaussian    & $\mu=15.0, \sigma=3.0$ \\
+& Nominal      & Gaussian    & $\mu=12.0, \sigma=3.8$ \\
+& Liberal      & Gaussian    & $\mu=9.0, \sigma=4.5$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\Rthree{\revtag{3}{3}The main global analysis involved simultaneously perturbing all 42 breakpoint parameters of the `Nominal' FIS (from Table~\ref{tab:fis_membership_params}) according to the formula:
+\begin{equation}
+    p'_k = p_k \cdot (1 + \delta),
+\end{equation}
+where \(\delta\) is a global perturbation factor that was systematically varied from -0.2 to +0.2 in steps of 0.01.}
+
+This corresponds to a simultaneous, correlated variation of up to \(\pm\)20\% in every parameter that defines the shape and position of the fuzzy sets.
+
+For each discrete value of \(\delta\), the entire held-out test set was re-evaluated using the newly perturbed FIS, and the Mean Absolute Error (MAE) between the system's output and the stable expert ground truth was calculated. This process generated a curve of MAE as a function of the global perturbation factor \(\delta\), as shown in Figure~\ref{fig:sensplot}.
+
+\subsection{Analysis of Results and Implications for Robustness}
+\Rone{\revtag{1}{2}The results of the global sensitivity analysis are plotted in Figure~\ref{fig:sensplot}. The curve clearly shows that the system exhibits graceful degradation rather than catastrophic failure in the face of parameter uncertainty. The baseline MAE at \(\delta=0\) (i.e., with our final tuned parameters) is 0.14. As the parameters are perturbed, the MAE increases only modestly, remaining below 0.18 across the entire \(\pm\)20\% perturbation range. The relatively flat, parabolic shape of the curve near its minimum indicates low sensitivity to small parameter errors. Furthermore, the symmetric nature of the curve indicates that the system is equally robust to both systematic underestimation and overestimation of its parameters.}
+
+\Rthree{\revtag{3}{3}This result is highly significant for practical deployment, as it demonstrates that the FIS is not a ``brittle'' system that depends on hyper-precise tuning. It can tolerate the moderate inaccuracies in parameter definition that are inevitable in any real-world application based on expert elicitation and finite data, without a catastrophic loss of performance. This robustness provides a strong degree of confidence in the reliability and stability of the criticality scores produced by the framework in real-world operational settings.}
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/61_fig_a1_sens.pdf}
+    \caption{\Rone{\revtag{1}{2}Global sensitivity of the Fuzzy Inference System to joint perturbations of all membership function parameters.} \Rthree{\revtag{3}{3}The baseline system (0\% perturbation) achieves a Mean Absolute Error (MAE) of 0.14 against expert ratings. The MAE remains below 0.18 across the entire \(\pm\)20\% perturbation range, demonstrating the system's high degree of robustness to parameter uncertainty.}}
+    \label{fig:sensplot}
+\end{figure}
+
+\section{Reproducibility Checklist}\label{sec:reproducibility}
+\Rtwo{\revtag{2}{1}To ensure the highest possible standard of scientific reproducibility, this section provides a comprehensive checklist of the software environment, settings, and parameters used in our study.}
+
+\subsection{Software Environment}
+All experiments were conducted within a Conda environment defined by the following core packages. The full \texttt{environment.yml} is available in our code repository.
+\begin{itemize}
+    \item \textbf{Language:} Python 3.11.5
+    \item \textbf{Deep Learning:} PyTorch 2.1.0, Torchvision 0.22.0, Ultralytics 8.0.120
+    \item \textbf{Numerical/Data Handling:} NumPy 1.26.0, SciPy 1.10.1, Pandas 2.1.0
+    \item \textbf{Image Processing:} OpenCV-Python 4.10.0, PyWavelets 1.4.1
+    \item \textbf{Fuzzy Logic:} scikit-fuzzy 0.5.0
+    \item \textbf{Machine Learning/Stats:} scikit-learn 1.3.0
+    \item \textbf{GPU Environment:} CUDA Toolkit 11.8, cuDNN 8.9.2
+\end{itemize}
+
+\subsection{Deterministic Execution}
+To maximize the determinism of our deep learning experiments, the following settings were enforced in our training scripts:
+\begin{verbatim}
+import random
+import numpy as np
+import torch
+
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.cuda.manual_seed_all(SEED)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+\end{verbatim}
+
+We acknowledge that some CUDA operations can remain inherently non-deterministic; however, these settings minimize stochasticity to the greatest extent possible, ensuring that repeated runs of our training code on the same hardware produce nearly identical model weights.
+
+\section{Conclusion}
+This supplementary document has provided an exhaustive technical account of the key methodological innovations of our work. We have detailed the physical and mathematical basis for the expert-driven criticality models, offered a comprehensive guide to the design and implementation of the Fuzzy Inference System, and formally described the protocols for validation and sensitivity analysis. This information confirms that our framework is not only accurate but also transparent, reproducible, and robust, reinforcing the conclusions of the main manuscript and providing a solid foundation for future research in automated structural health monitoring.
+
+\reftitle{References}
+
+\bibliography{references}
+
+\begin{listing}[H]
+\caption{Expanded Python implementation of the Fuzzy Inference System (Part 1 of 4): Initialization of universes, variables, membership functions, and visualization.}
+\label{lst:scikit-code-part1}
+\begin{adjustwidth}{-\extralength}{0cm}
+\begin{lstlisting}[language=Python, style=mystyle]
+import numpy as np
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+import matplotlib.pyplot as plt
+
+# =============================================================================
+# 1. Define Universes of Discourse for all variables
+# =============================================================================
+# These numerical ranges define the boundaries for each input and output variable.
+# They are chosen to encompass all plausible physical measurements and the final output scale.
+defect_size_universe = np.arange(0, 1001, 1) # Real-world area in square millimeters (mm^2)
+location_universe = np.arange(0, 1.01, 0.01) # Normalized spanwise position (0=root, 1=tip)
+thermal_universe = np.arange(0, 25.1, 0.1)  # Temperature difference (Delta T) in degrees Celsius
+criticality_universe = np.arange(0, 5.01, 0.01) # Output scale, aligns with 1-5 EPRI damage taxonomy
+
+# =============================================================================
+# 2. Create Antecedent (input) and Consequent (output) objects
+# =============================================================================
+# These objects link the numerical universes to intuitive linguistic variable names for the rules.
+defect_size = ctrl.Antecedent(defect_size_universe, 'DefectSize')
+location = ctrl.Antecedent(location_universe, 'Location')
+thermal = ctrl.Antecedent(thermal_universe, 'ThermalSignature')
+criticality = ctrl.Consequent(criticality_universe, 'Criticality')
+
+# =============================================================================
+# 3. Define Membership Functions based on Table S4
+# =============================================================================
+# Each linguistic term (e.g., 'Small') is defined by a fuzzy set, which maps a crisp
+# input value to a degree of membership (between 0 and 1).
+# The shapes and parameters are derived from a hybrid expert/data-driven approach.
+
+# For Defect Size (trapezoidal functions provide a plateau for 'full' membership)
+defect_size['Small']  = fuzz.trapmf(defect_size.universe, [0, 0, 50, 100])
+defect_size['Medium'] = fuzz.trapmf(defect_size.universe, [50, 100, 400, 500])
+defect_size['Large']  = fuzz.trapmf(defect_size.universe, [400, 500, 1000, 1000])
+
+# For Location (Z/S-shaped functions model gradual transitions at the ends, Gaussian for the middle)
+location['Root']     = fuzz.zmf(location.universe, 0.0, 0.33)
+location['Mid-span'] = fuzz.gaussmf(location.universe, 0.5, 0.1)
+location['Tip']      = fuzz.smf(location.universe, 0.66, 1.0)
+
+# For Thermal Signature (trapezoidal functions reflect thresholds from industry standards)
+thermal['Low']    = fuzz.trapmf(thermal.universe, [0, 0, 2, 4])
+thermal['Medium'] = fuzz.trapmf(thermal.universe, [3, 5, 8, 10])
+thermal['High']   = fuzz.trapmf(thermal.universe, [9, 12, 25, 25])
+
+# For Criticality Output (triangular for intermediate levels, trapezoidal to cap the 'Severe' level)
+criticality['Negligible'] = fuzz.trimf(criticality.universe, [0, 1, 2])
+criticality['Low']        = fuzz.trimf(criticality.universe, [1, 2, 3])
+criticality['Medium']     = fuzz.trimf(criticality.universe, [2, 3, 4])
+criticality['High']       = fuzz.trimf(criticality.universe, [3, 4, 5])
+criticality['Severe']     = fuzz.trapmf(criticality.universe, [4, 5, 5, 5])
+
+# =============================================================================
+# 4. (Optional) Visualize the Membership Functions to verify their shapes
+# =============================================================================
+# This is a good practice to ensure the fuzzy sets match the intended design.
+# To run this visualization, uncomment the following lines.
+
+# defect_size.view()
+# location.view()
+# thermal.view()
+# criticality.view()
+# plt.show() # Display the plots
+\end{lstlisting}
+\end{adjustwidth}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Expanded Python implementation of the Fuzzy Inference System (Part 2 of 4): Definition of the complete 27-rule knowledge base with explanatory comments.}
+\label{lst:scikit-code-part2}
+\begin{adjustwidth}{-\extralength}{0cm}
+\begin{lstlisting}[language=Python, style=mystyle]
+# =============================================================================
+# 5. Define the complete 27-rule knowledge base.
+# =============================================================================
+# Each rule translates a piece of expert knowledge into a logical statement.
+# The '&' operator corresponds to the fuzzy AND (t-norm, typically 'fmin').
+# The '|' operator corresponds to the fuzzy OR (s-norm, typically 'fmax').
+
+# --- Group 1: Rules for Large Defects (9 rules) ---
+# Rationale: Large defects are inherently high-risk. Per IEC 61400-5, any significant
+# flaw in the blade root (max stress area) is considered severe.
+# The criticality is downgraded slightly towards the tip where loads are lower.
+rule1 = ctrl.Rule(defect_size['Large'] & location['Root'] & thermal['High'], criticality['Severe'])
+rule2 = ctrl.Rule(defect_size['Large'] & location['Root'] & thermal['Medium'], criticality['Severe'])
+rule3 = ctrl.Rule(defect_size['Large'] & location['Root'] & thermal['Low'], criticality['Severe'])
+rule4 = ctrl.Rule(defect_size['Large'] & location['Mid-span'] & thermal['High'], criticality['Severe'])
+rule5 = ctrl.Rule(defect_size['Large'] & location['Mid-span'] & thermal['Medium'], criticality['High'])
+rule6 = ctrl.Rule(defect_size['Large'] & location['Mid-span'] & thermal['Low'], criticality['High'])
+rule7 = ctrl.Rule(defect_size['Large'] & location['Tip'] & thermal['High'], criticality['High'])
+rule8 = ctrl.Rule(defect_size['Large'] & location['Tip'] & thermal['Medium'], criticality['Medium'])
+rule9 = ctrl.Rule(defect_size['Large'] & location['Tip'] & thermal['Low'], criticality['Medium'])
+
+# --- Group 2: Rules for Medium Defects (9 rules) ---
+# Rationale: For medium defects, the location and thermal signature become the key
+# differentiators. A medium defect at the root is still a high-risk event. A thermal
+# signature indicates a potentially deeper, more severe underlying issue.
+rule10 = ctrl.Rule(defect_size['Medium'] & location['Root'] & thermal['High'], criticality['Severe'])
+rule11 = ctrl.Rule(defect_size['Medium'] & location['Root'] & thermal['Medium'], criticality['High'])
+rule12 = ctrl.Rule(defect_size['Medium'] & location['Root'] & thermal['Low'], criticality['High'])
+rule13 = ctrl.Rule(defect_size['Medium'] & location['Mid-span'] & thermal['High'], criticality['High'])
+rule14 = ctrl.Rule(defect_size['Medium'] & location['Mid-span'] & thermal['Medium'], criticality['Medium'])
+rule15 = ctrl.Rule(defect_size['Medium'] & location['Mid-span'] & thermal['Low'], criticality['Low'])
+rule16 = ctrl.Rule(defect_size['Medium'] & location['Tip'] & thermal['High'], criticality['Medium'])
+rule17 = ctrl.Rule(defect_size['Medium'] & location['Tip'] & thermal['Medium'], criticality['Low'])
+rule18 = ctrl.Rule(defect_size['Medium'] & location['Tip'] & thermal['Low'], criticality['Low'])
+
+# --- Group 3: Rules for Small Defects (9 rules) ---
+# Rationale: Small defects are generally low-risk unless other factors elevate their
+# severity. A small defect with a high thermal signature, especially at the root,
+# could be an early indicator of a major internal problem (e.g., delamination).
+# A small, non-thermal defect at the tip is considered negligible.
+rule19 = ctrl.Rule(defect_size['Small'] & location['Root'] & thermal['High'], criticality['High'])
+rule20 = ctrl.Rule(defect_size['Small'] & location['Root'] & thermal['Medium'], criticality['Medium'])
+rule21 = ctrl.Rule(defect_size['Small'] & location['Root'] & thermal['Low'], criticality['Low'])
+rule22 = ctrl.Rule(defect_size['Small'] & location['Mid-span'] & thermal['High'], criticality['Medium'])
+rule23 = ctrl.Rule(defect_size['Small'] & location['Mid-span'] & thermal['Medium'], criticality['Low'])
+rule24 = ctrl.Rule(defect_size['Small'] & location['Mid-span'] & thermal['Low'], criticality['Negligible'])
+rule25 = ctrl.Rule(defect_size['Small'] & location['Tip'] & thermal['High'], criticality['Low'])
+rule26 = ctrl.Rule(defect_size['Small'] & location['Tip'] & thermal['Medium'], criticality['Negligible'])
+rule27 = ctrl.Rule(defect_size['Small'] & location['Tip'] & thermal['Low'], criticality['Negligible'])
+
+# =============================================================================
+# 6. Aggregate all rules into a single list for the control system.
+# =============================================================================
+full_rule_base = [
+    rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9, 
+    rule10, rule11, rule12, rule13, rule14, rule15, rule16, rule17, rule18, 
+    rule19, rule20, rule21, rule22, rule23, rule24, rule25, rule26, rule27
+]
+\end{lstlisting}
+\end{adjustwidth}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Expanded Python implementation of the Fuzzy Inference System (Part 3 of 4): Creation of the control system and a reusable inference function}
+\label{lst:scikit-code-part3}
+\begin{adjustwidth}{-\extralength}{0cm}
+\begin{lstlisting}[language=Python, style=mystyle]
+# =============================================================================
+# 7. Create the control system and the simulation engine
+# =============================================================================
+# The ControlSystem object holds the collection of all defined rules.
+fis_control = ctrl.ControlSystem(full_rule_base)
+
+# The ControlSystemSimulation object is the runtime engine for the FIS.
+# This object takes crisp inputs and performs the full fuzzy inference process
+# (fuzzification, rule application, aggregation, defuzzification).
+fis_simulation = ctrl.ControlsystemSimulation(fis_control)
+
+# =============================================================================
+# 8. Define a reusable function for inference and visualization
+# =============================================================================
+def assess_defect_criticality(size, loc, temp, visualize=False):
+    """
+    Calculates the criticality score for a defect with given physical parameters.
+
+    Args:
+        size (float): The defect's area in mm^2.
+        loc (float): The defect's normalized location (0.0=root to 1.0=tip).
+        temp (float): The thermal signature (Delta T) in Celsius.
+        visualize (bool): If True, displays the FIS output visualization.
+
+    Returns:
+        float: The final crisp criticality score (0-5).
+    """
+    # Pass inputs to the ControlSystemSimulation object
+    fis_simulation.input['DefectSize'] = size
+    fis_simulation.input['Location'] = loc
+    fis_simulation.input['ThermalSignature'] = temp
+
+    # Perform the fuzzy inference computation
+    fis_simulation.compute()
+
+    final_score = fis_simulation.output['Criticality']
+    
+    print("-" * 50)
+    print(f"Assessing Defect: Size={size}mm^2, Location={loc}, Temp={temp}C")
+    print(f"==> Final Criticality Score: {final_score:.3f}")
+    
+    # Optionally visualize the reasoning process
+    if visualize:
+        print("Displaying FIS output visualization...")
+        criticality.view(sim=fis_simulation)
+        plt.suptitle(f"FIS Output for Case: Size={size}, Loc={loc}, Temp={temp}", fontsize=12)
+        plt.show()
+        
+    return final_score
+\end{lstlisting}
+\end{adjustwidth}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Expanded Python implementation of the Fuzzy Inference System (Part 4 of 4): Creation of the detailed example calls.}
+\label{lst:scikit-code-part4}
+\begin{adjustwidth}{-\extralength}{0cm}
+\begin{lstlisting}[language=Python, style=mystyle]
+# =============================================================================
+# 9. Run several example inference scenarios
+# =============================================================================
+if __name__ == "__main__":
+    # --- Scenario 1: A critical defect (e.g., large crack at blade root) ---
+    # Expected outcome: A score close to 5.0 (Severe).
+    # Visualization will show the 'Severe' output set being heavily activated.
+    assess_defect_criticality(size=600, loc=0.15, temp=16, visualize=True)
+
+    # --- Scenario 2: A minor defect (e.g., small erosion at blade tip) ---
+    # Expected outcome: A score close to 1.0 (Negligible).
+    # Visualization will show the 'Negligible' output set being activated.
+    assess_defect_criticality(size=40, loc=0.85, temp=1.5, visualize=False)
+
+    # --- Scenario 3: An ambiguous, mid-range defect ---
+    # Expected outcome: A score around 3.0 (Medium).
+    # Visualization will show rule activation for 'Low', 'Medium', and 'High' sets,
+    # with the centroid (final score) falling near the middle.
+    assess_defect_criticality(size=250, loc=0.5, temp=7, visualize=True)
+
+    # --- Scenario 4: A small but thermally active defect at the root ---
+    # Expected outcome: A higher score than Scenario 2, demonstrating the interaction
+    # of rules. The thermal signature elevates the criticality significantly.
+    assess_defect_criticality(size=40, loc=0.10, temp=14, visualize=False)
+
+    # --- Scenario 5: RGB-only case (no thermal data available) ---
+    # For cases from datasets like AQUADA-GO, the thermal input is programmatically set to 0.
+    # The FIS relies only on size and location.
+    assess_defect_criticality(size=450, loc=0.7, temp=0, visualize=False)
+\end{lstlisting}
+\end{adjustwidth}
+\end{listing}
+
+\end{document}
